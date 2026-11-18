@@ -1,19 +1,29 @@
-import express from 'express'
-import { connectDatabase } from './config/database.js'
-import { env } from './config/env.js'
-import './models/index.js'
+import "dotenv/config";
 
-const app = express()
-app.use(express.json())
+import app from "./app.js";
+import {connectDatabase} from "./config/database.js";
 
-async function startServer(): Promise<void> {
-  await connectDatabase(env.mongodbUri)
-  app.listen(env.port, () => {
-    console.log(`Server listening on port ${env.port}`)
-  })
-}
+const PORT = process.env.PORT || 5000;
 
-startServer().catch((error: unknown) => {
-  console.error('Failed to start server', error)
-  process.exitCode = 1
-})
+const startServer = async () => {
+  try {
+    const mongodbUri = process.env.MONGODB_URI?.trim();
+    if (!mongodbUri) {
+      throw new Error(
+        "MONGODB_URI is not configured. Copy backend/.env.example to backend/.env and set a valid MongoDB connection string.",
+      );
+    }
+
+    await connectDatabase(mongodbUri);
+
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("Server startup failed:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
