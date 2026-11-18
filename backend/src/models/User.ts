@@ -1,23 +1,47 @@
-import { Schema, model } from 'mongoose'
+
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
 const userSchema = new Schema(
   {
-    username: { type: String, required: true, unique: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    passwordHash: { type: String, required: true },
-    avatar: { type: String, default: null },
-    bio: { type: String, default: '' },
-    role: { type: String, enum: ['user', 'super_admin'], default: 'user' },
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      minlength: 3,
+      maxlength: 30,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    passwordHash: {
+      type: String,
+      required: true,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["user", "super_admin"],
+      default: "user",
+      required: true,
+    },
     status: {
       type: String,
-      enum: ['active', 'suspended', 'banned'],
-      default: 'active',
+      enum: ["active", "suspended", "banned"],
+      default: "active",
+      required: true,
     },
+    avatar: { type: String, default: null },
+    bio: { type: String, default: "" },
   },
-  { timestamps: true, collection: 'users' },
-)
+  { timestamps: true },
+);
 
-userSchema.index({ role: 1 })
-userSchema.index({ status: 1 })
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 
-export const User = model('User', userSchema)
+export type UserDocument = InferSchemaType<typeof userSchema>;
+export const User = mongoose.model("User", userSchema);
