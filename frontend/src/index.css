@@ -1,14 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-canvas: #0b0d12;
+  --color-sidebar: #10131b;
+  --color-surface: #151923;
+  --color-surface-raised: #1b2030;
+  --color-surface-muted: #10131b;
+  --color-accent: #8b7cff;
+  --color-accent-hover: #a397ff;
+  --color-accent-deep: #5948c8;
+  --color-accent-subdued: #292444;
+  --color-content: #f3f4f8;
+  --color-content-muted: #a0a6b5;
+  --color-content-subdued: #737b8d;
+  --color-content-disabled: #4d5565;
+  --color-border: #252b38;
+  --color-border-hover: #373f50;
+  --color-success: #35c98a;
+  --color-danger: #f16b75;
+  --color-warning: #e9b45b;
+}
+
 :root {
-  font-family: system-ui, sans-serif;
-  color: #111827;
-  background: #ffffff;
+  color: #f3f4f8;
+  background: #0b0d12;
+  font-family: 'Inter', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0b0d12;
 }
 
 body {
+  min-width: 320px;
   margin: 0;
+  background: #0b0d12;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8b7cff;
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #0b0d12;
+  background: #8b7cff;
+}
+
+.nexus-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 760px) 320px;
+  gap: 2rem;
+  width: min(100% - 4rem, 1400px);
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.nexus-sidebar {
+  border-right: 1px solid #252b38;
+  background: #10131b;
+}
+
+.nexus-main {
+  min-width: 0;
+  padding: 2rem 0;
+}
+
+.nexus-context {
+  padding: 2rem 0;
+}
+
+.nexus-card {
+  border: 1px solid #252b38;
+  border-radius: 1rem;
+  background: #151923;
+}
+
+.nexus-card:hover {
+  border-color: #373f50;
+}
+
+.nexus-label {
+  color: #737b8d;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 0.875rem;
+  text-transform: uppercase;
+}
+
+.nexus-title {
+  color: #f3f4f8;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 2rem;
+}
+
+.nexus-body {
+  color: #a0a6b5;
+  font-size: 0.875rem;
+  letter-spacing: -0.006em;
+  line-height: 1.45rem;
+}
+
+@media (max-width: 1279px) {
+  .nexus-shell {
+    grid-template-columns: 64px minmax(0, 760px);
+    gap: 1.5rem;
+    width: min(100% - 3rem, 824px);
+  }
+
+  .nexus-context {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .nexus-shell {
+    display: block;
+    width: 100%;
+  }
+
+  .nexus-sidebar {
+    min-height: 3.75rem;
+    border-right: 0;
+    border-bottom: 1px solid #252b38;
+  }
+
+  .nexus-main {
+    padding: 1rem 0.75rem 5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
