@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
 
 function RegisterPage() {
   const { register } = useAuth();
@@ -80,7 +81,7 @@ function RegisterPage() {
       await register(username, email, password);
       navigate("/profile", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed.");
+      setError(getApiErrorMessage(err, "Registration failed."));
     } finally {
       setIsSubmitting(false);
     }
@@ -109,9 +110,7 @@ function RegisterPage() {
 
           <div>
             <div className="text-xl font-bold tracking-[0.16em]">NEXUS</div>
-            <div className="mt-0.5 text-[9px] font-semibold tracking-[0.25em] text-[#8B7CFF]">
-              ENGINEERS ONLY • V2.4 PROTOCOL
-            </div>
+        
           </div>
         </div>
 
@@ -371,7 +370,6 @@ function RegisterPage() {
             <Activity size={12} className="text-[#8B7CFF]" />
             <span>Nexus Network</span>
           </div>
-          <span>System Version 2.4</span>
         </div>
       </section>
     </main>

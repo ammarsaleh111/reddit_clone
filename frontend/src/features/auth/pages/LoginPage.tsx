@@ -6,14 +6,13 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  GitBranch,
   Hexagon,
-  KeyRound,
   LockKeyhole,
   ShieldCheck,
   Terminal,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -24,7 +23,6 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberSession, setRememberSession] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,7 +40,7 @@ function LoginPage() {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign in.");
+      setError(getApiErrorMessage(err, "Failed to sign in."));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,9 +70,6 @@ function LoginPage() {
 
           <div>
             <div className="text-2xl font-bold tracking-[0.16em]">NEXUS</div>
-            <div className="mt-0.5 text-[9px] font-semibold tracking-[0.3em] text-[#8B7CFF]">
-              V2.4 CORE
-            </div>
           </div>
         </div>
 
@@ -107,7 +102,7 @@ function LoginPage() {
                 htmlFor="email"
                 className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
               >
-                Account Handle
+                email address
               </label>
 
               <div className="relative">
@@ -136,7 +131,7 @@ function LoginPage() {
                   htmlFor="password"
                   className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
                 >
-                  Secret Token
+                  password
                 </label>
               </div>
 
@@ -168,17 +163,6 @@ function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Session */}
-            <label className="flex cursor-pointer items-center gap-2.5 text-xs text-[#9298A8]">
-              <input
-                type="checkbox"
-                checked={rememberSession}
-                onChange={(event) => setRememberSession(event.target.checked)}
-                className="h-4 w-4 accent-[#8B7CFF]"
-              />
-              Remember this session for 30 days
-            </label>
-
             {/* Sign In */}
             <button
               type="submit"
@@ -192,38 +176,6 @@ function LoginPage() {
               />
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="my-7 flex items-center gap-4">
-            <div className="h-px flex-1 bg-[#303646]" />
-            <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#737B8D]">
-              Or continue with
-            </span>
-            <div className="h-px flex-1 bg-[#303646]" />
-          </div>
-
-          {/* Alternative Sign In */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              disabled
-              title="GitHub authentication is not available in the MVP"
-              className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#303646] bg-[#10131B] text-xs font-medium text-[#737B8D] opacity-70"
-            >
-              <GitBranch size={17} />
-              GitHub
-            </button>
-
-            <button
-              type="button"
-              disabled
-              title="Passkey authentication is not available in the MVP"
-              className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#303646] bg-[#10131B] text-xs font-medium text-[#737B8D] opacity-70"
-            >
-              <KeyRound size={17} />
-              Passkey
-            </button>
-          </div>
 
           {/* Security Notice */}
           <div className="mt-7 flex gap-3 rounded-lg border border-[#8B7CFF]/15 bg-[#8B7CFF]/[0.06] p-4">
@@ -257,7 +209,6 @@ function LoginPage() {
             <span>Nexus Network</span>
           </div>
 
-          <span>System Version 2.4</span>
         </div>
       </section>
     </main>

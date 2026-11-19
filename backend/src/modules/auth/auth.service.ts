@@ -13,15 +13,22 @@ export function toPublicUser(user: {
   email: string;
   role: string;
   status: string;
+  avatar?: string | null;
+  bio?: string | null;
+  createdAt?: Date;
 }) {
   return {
     id: user._id.toString(),
     username: user.username,
     email: user.email,
+    avatar: user.avatar ?? null,
+    bio: user.bio ?? null,
     role: user.role,
     status: user.status,
+    createdAt: user.createdAt?.toISOString() ?? new Date().toISOString(),
   };
 }
+
 
 export async function registerUser(input: RegisterInput) {
   const existingUser = await User.findOne({

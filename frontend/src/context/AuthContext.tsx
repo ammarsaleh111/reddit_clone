@@ -1,5 +1,23 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import {
+  login as loginService,
+  register as registerService,
+  logout as logoutService,
+  getCurrentUser,
+  type ApiUser,
+} from "../services/authservices";
+
+import type {
+  LoginData,
+  RegisterData,
+} from "../features/auth/types/auth.types";
 
 export type UserRole = "USER" | "SUPER_ADMIN";
 
@@ -15,109 +33,115 @@ export interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
-  guestName: string;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
+
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  updateUser: (updates: Partial<AuthUser>) => void;
+
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
+
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
-const STORAGE_KEY = "nexus_auth_user";
-
-function getInitialUser(): AuthUser | null {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return null;
-  try {
-    return JSON.parse(saved) as AuthUser;
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
+function mapApiUser(apiUser: ApiUser): AuthUser {
+  return {
+    id: apiUser.id,
+    username: apiUser.username,
+    email: apiUser.email,
+    avatar: apiUser.avatar,
+    bio: apiUser.bio,
+    role:
+      apiUser.role === "super_admin"
+        ? "SUPER_ADMIN"
+        : "USER",
+    createdAt: apiUser.createdAt,
+  };
 }
 
-function getGuestName(): string {
-  const key = "nexus_guest_name";
-  let name = sessionStorage.getItem(key);
-  if (!name) {
-    const num = String(Math.floor(Math.random() * 999) + 1).padStart(3, "0");
-    name = `Anonymous${num}`;
-    sessionStorage.setItem(key, name);
-  }
-  return name;
-}
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => getInitialUser());
-  const [guestName] = useState<string>(() => getGuestName());
+  // Restore the user using the server-side session cookie.
+  useEffect(() => {
+    let active = true;
+
+    async function restoreSession() {
+      try {
+        const apiUser = await getCurrentUser();
+
+        if (active) {
+          setUser(mapApiUser(apiUser));
+        }
+      } catch {
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    restoreSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function login(email: string, password: string) {
-    if (!password) throw new Error("Password is required");
-
-    const isSuperAdmin = email.trim().toLowerCase() === "admin@nexus.dev";
-    const loggedUser: AuthUser = {
-      id: isSuperAdmin ? "admin_001" : "user_001",
-      username: isSuperAdmin ? "superadmin" : email.split("@")[0] || "alex_dev",
+    const apiUser = await loginService({
       email: email.trim(),
-      avatar: null,
-      bio: isSuperAdmin
-        ? "Platform Super Administrator."
-        : "Systems programmer & distributed systems enthusiast.",
-      role: isSuperAdmin ? "SUPER_ADMIN" : "USER",
-      createdAt: "2026-09-14T10:30:00.000Z",
-    };
+      password,
+    } satisfies LoginData);
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedUser));
-    setUser(loggedUser);
+    setUser(mapApiUser(apiUser));
   }
 
-  async function register(username: string, email: string, password: string) {
-    if (!password) throw new Error("Password is required");
-
-    const newUser: AuthUser = {
-      id: `user_${Date.now()}`,
+  async function register(
+    username: string,
+    email: string,
+    password: string
+  ) {
+    const apiUser = await registerService({
       username: username.trim(),
       email: email.trim(),
-      avatar: null,
-      bio: null,
-      role: "USER",
-      createdAt: new Date().toISOString(),
-    };
+      password,
+    } satisfies RegisterData);
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
-    setUser(newUser);
+    setUser(mapApiUser(apiUser));
   }
 
-  function logout() {
-    localStorage.removeItem(STORAGE_KEY);
+  async function logout() {
+    await logoutService();
     setUser(null);
-  }
-
-  function updateUser(updates: Partial<AuthUser>) {
-    setUser((prev) => {
-      if (!prev) return null;
-      const updated = { ...prev, ...updates };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
-    });
   }
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        guestName,
         isAuthenticated: Boolean(user),
         isAdmin: user?.role === "SUPER_ADMIN",
-        isLoading: false,
+        isLoading,
         login,
         register,
         logout,
-        updateUser,
       }}
     >
       {children}
@@ -127,8 +151,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
   }
+
   return context;
 }
