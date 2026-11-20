@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import authRoutes from "./modules/auth/auth.routers.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import commentRoutes from "./modules/comments/comment.routes.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/comments", commentRoutes);
 
 
 app.use((_req, res) => {
