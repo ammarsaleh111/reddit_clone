@@ -33,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/votes", voteRoutes);
 
 
 app.use((_req, res) => {
