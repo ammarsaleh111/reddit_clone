@@ -1,6 +1,7 @@
 
 import { Comment } from "../../models/Comment.js";
 import { Post } from "../../models/Post.js";
+import { Community } from "../../models/Community.js";
 import { AppError } from "../../lib/AppError.js";
 
 interface CreateCommentInput {
@@ -182,23 +183,45 @@ export async function updateComment(
 }
 
 // Soft-delete a comment
-export async function deleteComment(
-  commentId: string,
-  userId: string
-) {
+export async function deleteComment(commentId: string, userId: string) {
   const comment = await Comment.findOne({
     _id: commentId,
-    author: userId,
     deletedAt: null,
   });
 
   if (!comment) {
-    throw new AppError(
-      404,
-      "Comment not found or you are not its author"
-    );
+    throw new AppError(404, "Comment not found");
   }
 
+  const isCommentAuthor = comment.author.toString() === userId;
+  if (!isCommentAuthor) {
+    const post = await Post.findOne({
+      _id: comment.post,
+      deletedAt: null,
+    }).select("community");
+
+    if (!post) {
+      throw new AppError(404, "Post not found");
+    }
+
+    const community = await Community.findOne({
+      _id: post.community,
+    }).select("creator");
+
+    if (!community) {
+      throw new AppError(404, "Community not found");
+    }
+
+    const isCommunityCreator = community.creator.toString() === userId;
+
+    if (!isCommunityCreator) {
+      throw new AppError(
+        403,
+        "You are not allowed to delete this comment",
+      );
+    }
+  }
   comment.deletedAt = new Date();
+
   await comment.save();
 }
