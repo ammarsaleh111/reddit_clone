@@ -12,7 +12,7 @@ export interface ApiUser {
   email: string;
   avatar: string | null;
   bio: string | null;
-  role: "user" | "super_admin";
+  role: "user";
   status: "active" | "suspended" | "banned";
   createdAt: string;
 }

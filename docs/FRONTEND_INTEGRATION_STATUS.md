@@ -8,8 +8,7 @@
 - Logout uses `POST /api/auth/logout`.
 - Authentication uses the backend HttpOnly `community.sid` cookie through Axios
   with `withCredentials: true`.
-- Protected routes wait for session verification and restrict `/admin` to the
-  backend `super_admin` role.
+- Protected routes wait for session verification before showing account settings.
 - Backend error messages and validation messages are displayed on login and
   registration forms.
 - The frontend Vite development server proxies `/api` to
@@ -23,7 +22,6 @@ These routes remain available with their Nexus visual direction:
 - `/register`
 - `/profile`
 - `/settings` and `/settings/profile`
-- `/admin`
 
 The profile page displays the authenticated user's real username, email,
 avatar, bio, role, and creation date. Profile activity and counts show honest
@@ -59,7 +57,6 @@ The backend currently does not expose endpoints for:
 - Followers/following lists and follow/unfollow actions
 - Posts, comments, communities, and profile activity
 - Search
-- Admin users, analytics, reports, moderation, and audit logs
 - Privacy preferences, connected accounts, or session management
 
 The frontend leaves controls for these areas disabled or displays an empty
@@ -70,7 +67,6 @@ state instead of claiming that data was saved.
 - `frontend/src/features/profile/data/mockprofile.ts`
 - Mock search posts, communities, and users
 - Mock followers and following lists
-- Mock admin users, analytics, moderation results, and activity logs
 - Anonymous guest names stored in `sessionStorage`
 
 ## Validation
@@ -91,19 +87,3 @@ Real registration, login, and session persistence require a running MongoDB
 instance and a configured backend `.env` file. The frontend itself does not
 store session tokens or trusted authentication state in browser storage.
 
-## Provisioning a super admin
-
-Registration intentionally creates only normal users. To create or update a
-super admin locally, set these environment variables in the terminal and run
-the provisioning command:
-
-```powershell
-cd backend
-$env:ADMIN_EMAIL = "admin@example.com"
-$env:ADMIN_PASSWORD = "use-a-strong-password"
-$env:ADMIN_USERNAME = "admin"
-npm run admin:create
-```
-
-The command hashes the password with Argon2, activates the account, and assigns
-the `super_admin` role. Credentials are not stored in source code.

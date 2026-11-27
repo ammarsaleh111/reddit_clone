@@ -9,7 +9,6 @@ import {
   Search,
   Settings,
   Share2,
-  Shield,
   Users,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
@@ -19,7 +18,7 @@ type ActiveTab = "overview" | "posts" | "comments" | "communities";
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [copiedLink, setCopiedLink] = useState(false);
@@ -125,14 +124,6 @@ export default function ProfilePage() {
             </Link>
           </nav>
           <div className="space-y-2 border-t border-[#252B38] pt-3">
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#8B7CFF] hover:bg-[#292444]"
-              >
-                <Shield size={15} /> Super Admin Console
-              </Link>
-            )}
             <Link
               to="/settings"
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923]"
@@ -160,11 +151,6 @@ export default function ProfilePage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-xl font-bold">{user.username}</h1>
-                    {user.role === "SUPER_ADMIN" && (
-                      <span className="rounded bg-[#292444] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#8B7CFF]">
-                        SUPER ADMIN
-                      </span>
-                    )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-[#737B8D]">
                     <span className="font-mono text-[#A0A6B5]">@{user.username}</span>

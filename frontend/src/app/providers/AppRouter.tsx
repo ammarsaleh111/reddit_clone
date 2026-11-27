@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../../components/guards/ProtectedRoute";
-import AdminDashboardPage from "../../features/admin/pages/AdminDashboardPage";
 import LoginPage from "../../features/auth/pages/LoginPage";
 import RegisterPage from "../../features/auth/pages/RegisterPage";
 import FollowersPage from "../../features/follow/pages/FollowersPage";
@@ -48,16 +47,6 @@ export default function AppRouter() {
 
         {/* Global Search route */}
         <Route path="/search" element={<SearchPage />} />
-
-        {/* Super Admin routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requireAdmin>
-              <AdminDashboardPage />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,3 @@
-export { AdminAuditLog } from './AdminAuditLog.js'
-export { BanRecord } from './BanRecord.js'
 export { Comment } from './Comment.js'
 export { Community } from './Community.js'
 export { CommunityMember } from './CommunityMember.js'

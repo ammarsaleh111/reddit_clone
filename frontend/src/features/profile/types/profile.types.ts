@@ -3,7 +3,7 @@ export interface UserProfile {
   username: string;
   avatar: string | null;
   bio: string | null;
-  role: "USER" | "SUPER_ADMIN";
+  role: "USER";
   createdAt: string;
   followersCount: number;
   followingCount: number;

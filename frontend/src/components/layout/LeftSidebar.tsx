@@ -8,7 +8,6 @@ import {
   Home,
   Plus,
   Settings,
-  Shield,
   Users,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -41,7 +40,7 @@ export function LeftSidebar({
   onSelectCommunity,
   onOpenCreateCommunity,
 }: LeftSidebarProps) {
-  const { user, isAuthenticated, isAdmin } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [communitiesOpen, setCommunitiesOpen] = useState(true);
 
   const navBtnStyle = (isActive: boolean): CSSProperties => ({
@@ -244,25 +243,6 @@ export function LeftSidebar({
           <Settings size={16} />
           <span>Settings</span>
         </Link>
-
-        {isAdmin && (
-          <Link
-            to="/admin"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.625rem",
-              padding: "0.45rem 0.875rem",
-              borderRadius: "0.5rem",
-              color: "var(--color-accent)",
-              fontSize: "0.8125rem",
-              textDecoration: "none",
-            }}
-          >
-            <Shield size={16} />
-            <span>Admin Console</span>
-          </Link>
-        )}
 
         {isAuthenticated && user ? (
           <Link

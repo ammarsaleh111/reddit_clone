@@ -19,7 +19,7 @@ import type {
   RegisterData,
 } from "../features/auth/types/auth.types";
 
-export type UserRole = "USER" | "SUPER_ADMIN";
+export type UserRole = "USER";
 
 export interface AuthUser {
   id: string;
@@ -34,7 +34,6 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  isAdmin: boolean;
   isLoading: boolean;
 
   login: (email: string, password: string) => Promise<void>;
@@ -59,10 +58,7 @@ function mapApiUser(apiUser: ApiUser): AuthUser {
     email: apiUser.email,
     avatar: apiUser.avatar,
     bio: apiUser.bio,
-    role:
-      apiUser.role === "super_admin"
-        ? "SUPER_ADMIN"
-        : "USER",
+    role: "USER",
     createdAt: apiUser.createdAt,
   };
 }
@@ -137,7 +133,6 @@ export function AuthProvider({
       value={{
         user,
         isAuthenticated: Boolean(user),
-        isAdmin: user?.role === "SUPER_ADMIN",
         isLoading,
         login,
         register,
