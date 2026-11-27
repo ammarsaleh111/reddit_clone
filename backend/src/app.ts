@@ -1,4 +1,3 @@
-
 import "dotenv/config";
 
 import express from "express";
@@ -11,6 +10,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import commentRoutes from "./modules/comments/comment.routes.js";
 import voteRoutes from "./modules/votes/vote.routes.js";
 import searchRoutes from "./modules/search/search.routes.js";
+import communityRoutes from "./modules/communities/community.routes.js";
+import postRoutes from "./modules/posts/post.routes.js";
 
 const app = express();
 
@@ -33,12 +34,27 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// Existing (legacy response format)
 app.use("/api/auth", authRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/votes", voteRoutes);
+app.use("/api/search", searchRoutes);
 
+// API Contract v2.0
+app.use("/api/v1/communities", communityRoutes);
+app.use("/api/v1", postRoutes);
 
-app.use((_req, res) => {
+app.use((req, res) => {
+  if (req.originalUrl.startsWith("/api/v1")) {
+    res.status(404).json({
+      error: {
+        code: "NOT_FOUND",
+        message: "Route not found",
+      },
+    });
+    return;
+  }
+
   res.status(404).json({
     success: false,
     message: "Route not found",
