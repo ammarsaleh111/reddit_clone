@@ -9,6 +9,12 @@ import SettingsPage from "../../features/settings/pages/SettingsPage";
 import HomePage from "../../feed/pages/HomePage";
 import PostDetailPage from "../../feed/pages/PostDetailPage";
 
+import CommunityPage from "../../features/communities/pages/CommunityPage";
+import ExploreCommunitiesPage from "../../features/communities/pages/ExploreCommunitiesPage";
+import CreatePostPage from "../../features/posts/pages/CreatePostPage";
+
+
+
 
 export default function AppRouter() {
   return (
@@ -27,6 +33,11 @@ export default function AppRouter() {
         <Route path="/u/:username/followers" element={<FollowersPage />} />
         <Route path="/u/:username/following" element={<FollowersPage />} />
 
+        {/* Community and post creation routes */}
+        <Route path="/communities" element={<ExploreCommunitiesPage />} />
+        <Route path="/c/:name" element={<CommunityPage />} />
+        <Route path="/submit" element={<CreatePostPage />} />
+        
         {/* Protected settings routes */}
         <Route
           path="/settings"
