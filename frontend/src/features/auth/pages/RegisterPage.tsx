@@ -79,7 +79,7 @@ function RegisterPage() {
 
     try {
       await register(username, email, password);
-      navigate("/profile", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err, "Registration failed."));
     } finally {

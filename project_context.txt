@@ -1,0 +1,3619 @@
+﻿=== C:\Users\24P0030\reddit_clone\frontend\package.json ===
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.21.1",
+    "lucide-react": "^1.76.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.4.0"
+  }
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\app\providers\AppRouter.tsx ===
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "../../components/guards/ProtectedRoute";
+import AdminDashboardPage from "../../features/admin/pages/AdminDashboardPage";
+import LoginPage from "../../features/auth/pages/LoginPage";
+import RegisterPage from "../../features/auth/pages/RegisterPage";
+import FollowersPage from "../../features/follow/pages/FollowersPage";
+import ProfilePage from "../../features/profile/pages/ProfilePage";
+import SearchPage from "../../features/search/pages/SearchPage";
+import SettingsPage from "../../features/settings/pages/SettingsPage";
+
+export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Default route */}
+        <Route path="/" element={<Navigate to="/profile" replace />} />
+
+        {/* Authentication routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Public profile and follow routes */}
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/u/:username" element={<ProfilePage />} />
+        <Route path="/u/:username/followers" element={<FollowersPage />} />
+        <Route path="/u/:username/following" element={<FollowersPage />} />
+
+        {/* Protected settings routes */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings/profile"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Global Search route */}
+        <Route path="/search" element={<SearchPage />} />
+
+        {/* Super Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/profile" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\components\guards\ProtectedRoute.tsx ===
+import type { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requireAdmin?: boolean;
+}
+
+export default function ProtectedRoute({
+  children,
+  requireAdmin = false,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0B0D12] text-white">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#8B7CFF] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0B0D12] px-4 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#151923] p-8 text-center">
+          <h1 className="text-xl font-semibold text-red-400">Access Denied (403)</h1>
+          <p className="mt-2 text-sm text-[#9298A8]">
+            You do not have Super Admin permissions to access this area.
+          </p>
+          <a
+            href="/"
+            className="mt-6 inline-block rounded-lg bg-[#8B7CFF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#A397FF]"
+          >
+            Back to Home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\components\FeaturePlaceholder.tsx ===
+interface FeaturePlaceholderProps {
+  feature: string;
+}
+
+export default function FeaturePlaceholder({
+  feature,
+}: FeaturePlaceholderProps) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#0B0D12] px-4 text-[#F3F4F8]">
+      <div className="text-center">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8B7CFF]">
+          Nexus
+        </p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">Hello World</h1>
+        <p className="mt-3 text-sm text-[#A0A6B5]">
+          {feature} is under development.
+        </p>
+      </div>
+    </main>
+  );
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\context\AuthContext.tsx ===
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import {
+  login as loginService,
+  register as registerService,
+  logout as logoutService,
+  getCurrentUser,
+  type ApiUser,
+} from "../services/authservices";
+
+import type {
+  LoginData,
+  RegisterData,
+} from "../features/auth/types/auth.types";
+
+export type UserRole = "USER" | "SUPER_ADMIN";
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  avatar: string | null;
+  bio: string | null;
+  role: UserRole;
+  createdAt: string;
+}
+
+interface AuthContextType {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
+
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
+
+function mapApiUser(apiUser: ApiUser): AuthUser {
+  return {
+    id: apiUser.id,
+    username: apiUser.username,
+    email: apiUser.email,
+    avatar: apiUser.avatar,
+    bio: apiUser.bio,
+    role:
+      apiUser.role === "super_admin"
+        ? "SUPER_ADMIN"
+        : "USER",
+    createdAt: apiUser.createdAt,
+  };
+}
+
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Restore the user using the server-side session cookie.
+  useEffect(() => {
+    let active = true;
+
+    async function restoreSession() {
+      try {
+        const apiUser = await getCurrentUser();
+
+        if (active) {
+          setUser(mapApiUser(apiUser));
+        }
+      } catch {
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    restoreSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function login(email: string, password: string) {
+    const apiUser = await loginService({
+      email: email.trim(),
+      password,
+    } satisfies LoginData);
+
+    setUser(mapApiUser(apiUser));
+  }
+
+  async function register(
+    username: string,
+    email: string,
+    password: string
+  ) {
+    const apiUser = await registerService({
+      username: username.trim(),
+      email: email.trim(),
+      password,
+    } satisfies RegisterData);
+
+    setUser(mapApiUser(apiUser));
+  }
+
+  async function logout() {
+    await logoutService();
+    setUser(null);
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: Boolean(user),
+        isAdmin: user?.role === "SUPER_ADMIN",
+        isLoading,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
+  }
+
+  return context;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\admin\pages\AdminDashboardPage.tsx ===
+import { Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  FileText,
+  Gauge,
+  MessageSquare,
+  Shield,
+  Users,
+} from "lucide-react";
+
+const unavailableSections = [
+  {
+    title: "Platform Users",
+    description: "User lists, status changes, and moderation actions require admin APIs.",
+    icon: Users,
+  },
+  {
+    title: "Platform Analytics",
+    description: "Registration, post, comment, and activity metrics are not available yet.",
+    icon: Gauge,
+  },
+  {
+    title: "Communities and Reports",
+    description: "Community moderation and report queues require backend endpoints.",
+    icon: MessageSquare,
+  },
+  {
+    title: "Audit Logs",
+    description: "Audit log export is unavailable until an admin audit API is implemented.",
+    icon: FileText,
+  },
+];
+
+export default function AdminDashboardPage() {
+  return (
+    <div className="min-h-screen bg-[#0b0e16] text-[#e0e2ee] antialiased">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#474554]/30 bg-[#10131b]/85 px-6 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#474554]/40 bg-[#181b24] text-[#c8c4d6] hover:border-[#c7bfff]"
+          >
+            <ArrowLeft size={16} />
+          </Link>
+          <span className="text-base font-semibold tracking-tight">Nexus</span>
+          <span className="rounded bg-[#484264] px-1.5 py-0.5 text-[10px] font-semibold text-[#b8b0d8]">
+            ADMIN
+          </span>
+        </div>
+        <Link
+          to="/profile"
+          className="rounded-lg bg-[#1c1f28] px-3.5 py-1.5 text-xs font-medium text-[#e0e2ee] hover:bg-[#272a32]"
+        >
+          User Dashboard
+        </Link>
+      </header>
+
+      <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 p-6 lg:p-8">
+        <section className="relative overflow-hidden rounded-xl bg-[#181b24] p-6 lg:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-80 w-80 rounded-full bg-[#c7bfff]/5 blur-3xl" />
+          <div className="relative">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-3xl font-semibold tracking-tight">Super Admin Console</h1>
+              <span className="flex items-center gap-1.5 rounded-full bg-[#1c1f28] px-2.5 py-1 text-[11px] font-medium text-[#c8c4d6]">
+                <span className="h-2 w-2 rounded-full bg-[#e9b45b]" />
+                Data unavailable
+              </span>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-xs text-[#c8c4d6]">
+              <Shield size={14} className="text-[#c7bfff]" />
+              <span>Access is enforced by the backend super_admin role.</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {unavailableSections.map(({ title, description, icon: Icon }) => (
+            <div key={title} className="flex min-h-44 flex-col rounded-xl bg-[#181b24] p-6">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#272a32] text-[#c7bfff]">
+                <Icon size={16} />
+              </div>
+              <h2 className="mt-5 text-sm font-semibold">{title}</h2>
+              <p className="mt-2 text-xs leading-relaxed text-[#928f9f]">{description}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="rounded-xl bg-[#181b24] p-6 lg:p-8">
+          <h2 className="text-xl font-semibold tracking-tight">Not implemented yet</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#c8c4d6]">
+            The backend currently exposes authentication endpoints only. No fabricated
+            users, analytics, reports, moderation results, or audit events are shown here.
+            Add protected admin routes before populating this dashboard.
+          </p>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\components\AuthLayout.css ===
+.auth-page {
+  min-height: 100vh;
+  background: #0b0d12;
+  color: #f4f4f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  font-family: Inter, sans-serif;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  top: 32px;
+  left: 40px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.auth-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #8b7cff;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 20px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  background: #151923;
+  border: 1px solid #252a38;
+  border-radius: 16px;
+  padding: 36px;
+}
+
+.auth-heading {
+  margin-bottom: 28px;
+}
+
+.auth-heading h1 {
+  font-size: 28px;
+  margin: 0 0 10px;
+}
+
+.auth-heading p {
+  color: #9298a8;
+  font-size: 14px;
+  margin: 0;
+}
+
+.auth-footer {
+  position: absolute;
+  bottom: 20px;
+  color: #656b79;
+  font-size: 12px;
+}
+
+@media (max-width: 520px) {
+  .auth-brand {
+    position: static;
+    margin-bottom: 35px;
+  }
+
+  .auth-container {
+    padding: 26px 22px;
+  }
+
+  .auth-footer {
+    position: static;
+    margin-top: 30px;
+  }
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\components\AuthLayout.tsx ===
+import type { ReactNode } from "react";
+import "./AuthLayout.css";
+
+interface AuthLayoutProps {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+}
+
+function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
+  return (
+    <div className="auth-page">
+      <div className="auth-brand">
+        <div className="auth-logo">C</div>
+        <span>Connect</span>
+      </div>
+
+      <div className="auth-container">
+        <div className="auth-heading">
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
+
+        {children}
+      </div>
+
+      <p className="auth-footer">
+        Â© 2026 Connect. All rights reserved.
+      </p>
+    </div>
+  );
+}
+
+export default AuthLayout;
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\pages\AuthPages.css ===
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e6eb;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #303646;
+  border-radius: 9px;
+  background: #10131b;
+  color: #f4f4f7;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+  color: #656b79;
+}
+
+.form-group input:focus {
+  border-color: #8b7cff;
+  box-shadow: 0 0 0 3px rgba(139, 124, 255, 0.12);
+}
+
+.auth-submit {
+  height: 48px;
+  border: none;
+  border-radius: 9px;
+  background: #8b7cff;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-submit:hover {
+  background: #a397ff;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+  color: #9298a8;
+  font-size: 13px;
+}
+
+.auth-switch a {
+  color: #a397ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\pages\LoginPage.tsx ===
+import { useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Hexagon,
+  LockKeyhole,
+  ShieldCheck,
+  Terminal,
+} from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
+
+function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/profile";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+
+    if (!email.trim() || !password) {
+      setError("Please enter both your email and password.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Failed to sign in."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0D12] px-5 py-12 text-white">
+      {/* Background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: "radial-gradient(#737B8D 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      <div className="pointer-events-none absolute -left-40 top-[-180px] h-[500px] w-[500px] rounded-full bg-[#8B7CFF]/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-[-180px] h-[500px] w-[500px] rounded-full bg-[#8B7CFF]/10 blur-[130px]" />
+
+      {/* Login Card */}
+      <section className="relative z-10 w-full max-w-[440px]">
+        {/* Brand */}
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#8B7CFF]/30 bg-[#8B7CFF]/10 text-[#A397FF]">
+            <Hexagon size={25} strokeWidth={1.8} />
+          </div>
+
+          <div>
+            <div className="text-2xl font-bold tracking-[0.16em]">NEXUS</div>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-white/[0.08] bg-[#151923]/95 p-7 shadow-[0_25px_80px_rgba(0,0,0,0.45)] sm:p-9">
+          <div className="mb-8 text-center">
+            <h1 className="text-[27px] font-semibold tracking-tight text-white">
+              Welcome Back
+            </h1>
+
+            <p className="mt-2 text-sm text-[#9298A8]">
+              Enter your credentials to access the network.
+            </p>
+          </div>
+
+          {error && (
+            <div
+              role="alert"
+              className="mb-5 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400"
+            >
+              <AlertCircle size={15} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+              >
+                email address
+              </label>
+
+              <div className="relative">
+                <Terminal
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                  required
+                  className="h-[50px] w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+                >
+                  password
+                </label>
+              </div>
+
+              <div className="relative">
+                <LockKeyhole
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  required
+                  className="h-[50px] w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-12 text-sm text-white outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737B8D] transition hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Sign In */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group flex h-[50px] w-full items-center justify-center gap-2 rounded-lg bg-[#8B7CFF] text-sm font-semibold text-white shadow-[0_5px_25px_rgba(139,124,255,0.2)] transition hover:bg-[#A397FF] disabled:opacity-50"
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
+              <ArrowRight
+                size={17}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </button>
+          </form>
+
+          {/* Security Notice */}
+          <div className="mt-7 flex gap-3 rounded-lg border border-[#8B7CFF]/15 bg-[#8B7CFF]/[0.06] p-4">
+            <ShieldCheck size={19} className="mt-0.5 shrink-0 text-[#A397FF]" />
+
+            <div>
+              <p className="text-xs font-semibold text-[#D7D2FF]">Secure Access</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-[#9298A8]">
+                Your account session is managed through the Nexus authentication
+                system.
+              </p>
+            </div>
+          </div>
+
+          {/* Register Link */}
+          <p className="mt-7 text-center text-xs text-[#9298A8]">
+            New to the network?{" "}
+            <Link
+              to="/register"
+              className="font-semibold text-[#A397FF] transition hover:text-white"
+            >
+              Create an account
+            </Link>
+          </p>
+        </div>
+
+        {/* Bottom Status */}
+        <div className="mt-6 flex items-center justify-between px-1 text-[9px] font-medium uppercase tracking-[0.13em] text-[#626A7A]">
+          <div className="flex items-center gap-2">
+            <Activity size={12} className="text-[#8B7CFF]" />
+            <span>Nexus Network</span>
+          </div>
+
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export default LoginPage;
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\pages\RegisterPage.tsx ===
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Activity,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Layers,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
+
+function RegisterPage() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const passwordStrength =
+    password.length === 0
+      ? 0
+      : password.length < 6
+        ? 1
+        : password.length < 10
+          ? 2
+          : 3;
+
+  const strengthLabels = ["", "Weak", "Medium", "Strong"];
+
+  const strengthBarColors: Record<number, string> = {
+    1: "bg-[#F16B75]",
+    2: "bg-[#E9B45B]",
+    3: "bg-[#35C98A]",
+  };
+
+  const strengthTextColors: Record<number, string> = {
+    1: "text-[#F16B75]",
+    2: "text-[#E9B45B]",
+    3: "text-[#35C98A]",
+  };
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (username.trim().length < 3) {
+      setError("Username must be at least 3 characters.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError("Please accept the Terms of Service.");
+      return;
+    }
+
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      await register(username, email, password);
+      navigate("/profile", { replace: true });
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Registration failed."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0D12] px-5 py-12 text-white">
+      {/* Background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: "radial-gradient(#737B8D 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      <div className="pointer-events-none absolute -left-40 top-[-180px] h-[500px] w-[500px] rounded-full bg-[#8B7CFF]/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-[-180px] h-[500px] w-[500px] rounded-full bg-[#8B7CFF]/10 blur-[130px]" />
+
+      <section className="relative z-10 w-full max-w-[490px]">
+        {/* Brand */}
+        <div className="mb-7 flex items-center justify-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#8B7CFF]/30 bg-[#8B7CFF]/10 text-[#A397FF]">
+            <Layers size={23} />
+          </div>
+
+          <div>
+            <div className="text-xl font-bold tracking-[0.16em]">NEXUS</div>
+        
+          </div>
+        </div>
+
+        {/* Register Card */}
+        <div className="rounded-2xl border border-white/[0.08] bg-[#151923]/95 p-7 shadow-[0_25px_80px_rgba(0,0,0,0.45)] sm:p-8">
+          <div className="mb-7 text-center">
+            <h1 className="text-[27px] font-semibold tracking-tight">
+              Join Nexus
+            </h1>
+            <p className="mt-2 text-sm text-[#9298A8]">
+              Create your identity in the network.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
+            <div>
+              <label
+                htmlFor="username"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+              >
+                Username
+              </label>
+
+              <div className="relative">
+                <UserRound
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="Choose your handle"
+                  autoComplete="username"
+                  minLength={3}
+                  required
+                  className="h-11 w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+              </div>
+
+              <p className="mt-1.5 text-[10px] text-[#737B8D]">
+                Choose a unique username (at least 3 characters).
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+              >
+                Email Address
+              </label>
+
+              <div className="relative">
+                <Mail
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                  required
+                  className="h-11 w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+              >
+                Password
+              </label>
+
+              <div className="relative">
+                <LockKeyhole
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Create a strong password"
+                  autoComplete="new-password"
+                  required
+                  className="h-11 w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-12 text-sm outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737B8D] hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+
+              {/* Password Strength */}
+              <div className="mt-2 flex items-center gap-2">
+                <div className="flex flex-1 gap-1">
+                  {[1, 2, 3].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-1 flex-1 rounded-full transition-colors ${
+                        passwordStrength >= level
+                          ? strengthBarColors[passwordStrength]
+                          : "bg-[#303646]"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <span
+                  className={`text-[10px] font-medium transition-colors ${
+                    strengthTextColors[passwordStrength] || "text-[#9298A8]"
+                  }`}
+                >
+                  {strengthLabels[passwordStrength]}
+                </span>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.13em] text-[#B7BDCC]"
+              >
+                Confirm Password
+              </label>
+
+              <div className="relative">
+                <LockKeyhole
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#737B8D]"
+                />
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="Re-enter your password"
+                  autoComplete="new-password"
+                  required
+                  className="h-11 w-full rounded-lg border border-[#303646] bg-[#10131B] pl-11 pr-12 text-sm outline-none transition placeholder:text-[#626A7A] focus:border-[#8B7CFF] focus:ring-2 focus:ring-[#8B7CFF]/15"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737B8D] hover:text-white"
+                >
+                  {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+
+              {confirmPassword && (
+                <p
+                  className={`mt-1.5 text-[10px] ${
+                    password === confirmPassword ? "text-[#35C98A]" : "text-[#F16B75]"
+                  }`}
+                >
+                  {password === confirmPassword
+                    ? "Passwords match"
+                    : "Passwords do not match"}
+                </p>
+              )}
+            </div>
+
+            {/* Terms */}
+            <label className="flex cursor-pointer items-start gap-2.5 pt-1 text-[11px] leading-relaxed text-[#9298A8]">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(event) => setAcceptedTerms(event.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[#8B7CFF]"
+              />
+              <span>
+                I agree to the{" "}
+                <a
+                  href="#"
+                  onClick={(event) => event.preventDefault()}
+                  className="text-[#A397FF] hover:text-white"
+                >
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a
+                  href="#"
+                  onClick={(event) => event.preventDefault()}
+                  className="text-[#A397FF] hover:text-white"
+                >
+                  Privacy Policy
+                </a>
+                .
+              </span>
+            </label>
+
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg border border-[#F16B75]/30 bg-[#F16B75]/10 p-3 text-xs text-[#F16B75]"
+              >
+                {error}
+              </p>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#8B7CFF] text-sm font-semibold text-white shadow-[0_5px_25px_rgba(139,124,255,0.2)] transition hover:bg-[#A397FF] disabled:opacity-50"
+            >
+              {isSubmitting ? "Creating Account..." : "Create Account"}
+              <ArrowRight
+                size={17}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </button>
+          </form>
+
+          {/* Security */}
+          <div className="mt-5 flex items-center gap-2 rounded-lg border border-[#303646] bg-[#10131B] p-3">
+            <ShieldCheck size={16} className="shrink-0 text-[#8B7CFF]" />
+            <p className="text-[10px] text-[#9298A8]">
+              Your account information is handled securely.
+            </p>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-[#9298A8]">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-[#A397FF] hover:text-white"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-5 flex items-center justify-between px-1 text-[9px] font-medium uppercase tracking-[0.13em] text-[#626A7A]">
+          <div className="flex items-center gap-2">
+            <Activity size={12} className="text-[#8B7CFF]" />
+            <span>Nexus Network</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export default RegisterPage;
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\auth\types\auth.types.ts ===
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\follow\pages\FollowersPage.tsx ===
+import FeaturePlaceholder from "../../../components/FeaturePlaceholder";
+
+export default function FollowersPage() {
+  return <FeaturePlaceholder feature="Followers and following" />;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\profile\pages\ProfilePage.tsx ===
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Calendar,
+  Compass,
+  Edit3,
+  LayoutGrid,
+  LogOut,
+  Search,
+  Settings,
+  Share2,
+  Shield,
+  Users,
+} from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
+
+type ActiveTab = "overview" | "posts" | "comments" | "communities";
+
+export default function ProfilePage() {
+  const { username } = useParams<{ username: string }>();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  const isOwnProfile =
+    Boolean(user) &&
+    (!username || user?.username.toLowerCase() === username.toLowerCase());
+
+  if (!isOwnProfile || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0B0D12] px-4 text-[#F3F4F8]">
+        <div className="w-full max-w-md rounded-2xl border border-[#252B38] bg-[#151923] p-8 text-center">
+          <h1 className="text-xl font-semibold">Profile unavailable</h1>
+          <p className="mt-2 text-sm text-[#A0A6B5]">
+            Public profile APIs are not implemented yet. Sign in to view your own
+            account profile.
+          </p>
+          <Link
+            to={isAuthenticated ? "/profile" : "/login"}
+            className="mt-6 inline-block rounded-lg bg-[#8B7CFF] px-5 py-2.5 text-sm font-semibold text-[#151923]"
+          >
+            {isAuthenticated ? "View My Profile" : "Sign In"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedDate = new Date(user.createdAt).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+
+  async function handleCopyProfileLink() {
+    await navigator.clipboard?.writeText(window.location.href);
+    setCopiedLink(true);
+    window.setTimeout(() => setCopiedLink(false), 2000);
+  }
+
+  async function handleLogout() {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setLogoutError(getApiErrorMessage(error, "Unable to sign out. Please try again."));
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0B0D12] text-[#F3F4F8] antialiased">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#252B38] bg-[#10131B]/90 px-4 backdrop-blur-xl lg:px-6">
+        <Link to="/profile" className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#292444] font-mono text-xs font-bold text-[#8B7CFF]">
+            N
+          </span>
+          <span className="text-sm font-bold tracking-tight">Nexus</span>
+        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/search"
+            className="flex items-center gap-1.5 rounded-lg border border-[#252B38] bg-[#151923] px-3 py-1.5 text-xs text-[#A0A6B5]"
+          >
+            <Search size={14} />
+            <span className="hidden sm:inline">Search</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-lg border border-[#252B38] bg-[#151923] px-3 py-1.5 text-xs text-[#A0A6B5] hover:border-[#F16B75]/50 hover:text-[#F16B75]"
+          >
+            <LogOut size={14} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </header>
+      {logoutError && (
+        <p role="alert" className="mx-auto max-w-[1440px] px-4 pt-4 text-xs text-[#F16B75] lg:px-8">
+          {logoutError}
+        </p>
+      )}
+
+      <div className="mx-auto flex max-w-[1440px]">
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 flex-col justify-between border-r border-[#252B38] bg-[#10131B] p-4 lg:flex">
+          <nav className="space-y-1">
+            <Link
+              to="/search"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923] hover:text-[#F3F4F8]"
+            >
+              <Compass size={15} /> For You
+            </Link>
+            <Link
+              to={`/u/${user.username}/following`}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923] hover:text-[#F3F4F8]"
+            >
+              <Users size={15} /> Following
+            </Link>
+            <Link
+              to="/profile"
+              className="flex items-center gap-2.5 rounded-lg bg-[#292444] px-3 py-2 text-xs font-semibold"
+            >
+              <LayoutGrid size={15} className="text-[#8B7CFF]" /> Profile
+            </Link>
+          </nav>
+          <div className="space-y-2 border-t border-[#252B38] pt-3">
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#8B7CFF] hover:bg-[#292444]"
+              >
+                <Shield size={15} /> Super Admin Console
+              </Link>
+            )}
+            <Link
+              to="/settings"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923]"
+            >
+              <Settings size={15} /> Settings
+            </Link>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1 px-4 py-6 lg:px-8">
+          <section className="rounded-2xl border border-[#252B38] bg-[#151923] p-6">
+            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
+              <div className="flex gap-4">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.username}
+                    className="h-20 w-20 rounded-full border-2 border-[#8B7CFF]/50 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#8B7CFF]/50 bg-[#1B2030] text-2xl font-bold uppercase text-[#8B7CFF]">
+                    {user.username.slice(0, 2)}
+                  </div>
+                )}
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-xl font-bold">{user.username}</h1>
+                    {user.role === "SUPER_ADMIN" && (
+                      <span className="rounded bg-[#292444] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#8B7CFF]">
+                        SUPER ADMIN
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-[#737B8D]">
+                    <span className="font-mono text-[#A0A6B5]">@{user.username}</span>
+                    <span>â€¢</span>
+                    <Calendar size={12} />
+                    Joined {formattedDate}
+                  </div>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#A0A6B5]">
+                    {user.bio || "No bio has been added yet."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/settings/profile"
+                  className="flex items-center gap-1.5 rounded-lg border border-[#252B38] bg-[#1B2030] px-3.5 py-2 text-xs font-semibold hover:border-[#8B7CFF]"
+                >
+                  <Edit3 size={14} className="text-[#8B7CFF]" /> Edit Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleCopyProfileLink}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#252B38] bg-[#1B2030] text-[#A0A6B5]"
+                  title="Copy profile link"
+                >
+                  <Share2 size={14} />
+                </button>
+              </div>
+            </div>
+            {copiedLink && (
+              <p className="mt-2 text-right font-mono text-[11px] text-[#35C98A]">
+                Profile link copied
+              </p>
+            )}
+            <div className="mt-6 grid grid-cols-2 gap-3 rounded-xl border border-[#252B38] bg-[#10131B] p-4 sm:grid-cols-4">
+              {["Total Posts", "Total Comments", "Joined Communities", "Followers"].map(
+                (label) => (
+                  <div key={label}>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-[#737B8D]">
+                      {label}
+                    </div>
+                    <div className="mt-1 font-mono text-2xl font-bold text-[#F3F4F8]">
+                      â€”
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
+          </section>
+
+          <div className="mt-6 flex flex-wrap items-center gap-1.5">
+            {(["overview", "posts", "comments", "communities"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize ${
+                  activeTab === tab
+                    ? "bg-[#292444] text-[#8B7CFF]"
+                    : "text-[#A0A6B5] hover:bg-[#151923]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-xl border border-[#252B38] bg-[#151923] p-8 text-center">
+            <p className="text-sm font-semibold text-[#F3F4F8]">
+              {activeTab === "overview"
+                ? "No activity to display"
+                : `${activeTab[0].toUpperCase()}${activeTab.slice(1)} data is not available yet`}
+            </p>
+            <p className="mt-2 text-xs text-[#737B8D]">
+              Profile activity APIs are not implemented in the backend.
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\profile\types\profile.types.ts ===
+export interface UserProfile {
+  id: string;
+  username: string;
+  avatar: string | null;
+  bio: string | null;
+  role: "USER" | "SUPER_ADMIN";
+  createdAt: string;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
+  isFollowing?: boolean;
+}
+
+export interface ProfilePost {
+  id: string;
+  title: string;
+  body: string;
+  communityName: string;
+  votesCount: number;
+  commentsCount: number;
+  createdAt: string;
+}
+
+export interface ProfileComment {
+  id: string;
+  body: string;
+  postId: string;
+  postTitle: string;
+  communityName: string;
+  createdAt: string;
+}
+
+export interface ProfileCommunity {
+  id: string;
+  name: string;
+  description: string;
+  membersCount: number;
+  role: "MEMBER" | "ADMIN";
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\search\pages\SearchPage.tsx ===
+import FeaturePlaceholder from "../../../components/FeaturePlaceholder";
+
+export default function SearchPage() {
+  return <FeaturePlaceholder feature="Search" />;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\features\settings\pages\SettingsPage.tsx ===
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Eye,
+  KeyRound,
+  Lock,
+  LogOut,
+  Save,
+  Shield,
+  User,
+} from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
+import { getApiErrorMessage } from "../../../services/authservices";
+
+export default function SettingsPage() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  async function handleLogout() {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setLogoutError(getApiErrorMessage(error, "Unable to sign out. Please try again."));
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0b0e16] text-[#e0e2ee] antialiased">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#474554]/30 bg-[#10131b]/85 px-6 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#474554]/40 bg-[#181b24] text-[#c8c4d6] hover:border-[#c7bfff]"
+          >
+            <ArrowLeft size={16} />
+          </Link>
+          <span className="text-base font-semibold tracking-tight">Nexus</span>
+          <span className="rounded bg-[#484264] px-1.5 py-0.5 text-[10px] font-semibold text-[#b8b0d8]">
+            SETTINGS
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-2 rounded-lg bg-[#1c1f28] px-3.5 py-1.5 text-xs text-[#c8c4d6] hover:text-[#ffb4ab]"
+        >
+          <LogOut size={14} /> Sign out
+        </button>
+      </header>
+      {logoutError && (
+        <p role="alert" className="mx-auto max-w-[1240px] px-4 pt-4 text-xs text-[#ffb4ab] lg:px-8">
+          {logoutError}
+        </p>
+      )}
+
+      <main className="mx-auto max-w-[1240px] px-4 py-8 lg:px-8">
+        <div className="mb-8">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#c8c4d6]">
+            Nexus / Settings
+          </div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            Profile & Security Parameters
+          </h1>
+          <p className="mt-2 text-sm text-[#c8c4d6]">
+            Your account data is read from the authenticated backend session.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <nav className="flex flex-col gap-1 rounded-xl bg-[#181b24] p-1.5 lg:sticky lg:top-20 lg:col-span-3 lg:self-start">
+            {[
+              ["#public-profile", "Public Profile", User],
+              ["#account-info", "Account Info", BadgeCheck],
+              ["#password-auth", "Account & Security", Shield],
+              ["#privacy-data", "Preferences & Reading", Eye],
+            ].map(([href, label, Icon]) => {
+              const SectionIcon = Icon as typeof User;
+              return (
+                <a
+                  key={href as string}
+                  href={href as string}
+                  className="flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium text-[#c8c4d6] hover:bg-[#272a32] hover:text-[#e0e2ee]"
+                >
+                  <SectionIcon size={16} /> {label as string}
+                </a>
+              );
+            })}
+          </nav>
+
+          <div className="flex flex-col gap-8 lg:col-span-9">
+            <section id="public-profile" className="rounded-xl bg-[#181b24] p-6">
+              <div className="flex items-center gap-2">
+                <User size={19} className="text-[#c7bfff]" />
+                <h2 className="text-lg font-semibold">Public Profile Identity</h2>
+              </div>
+              <p className="mt-1 text-xs text-[#c8c4d6]">
+                Profile editing will be enabled when the backend profile update endpoint exists.
+              </p>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <label className="text-xs text-[#c8c4d6]">
+                  Username
+                  <input
+                    value={user?.username ?? ""}
+                    readOnly
+                    className="mt-2 w-full rounded-lg bg-[#1c1f28] px-3.5 py-2.5 font-mono text-sm text-[#e0e2ee] outline-none"
+                  />
+                </label>
+                <label className="text-xs text-[#c8c4d6]">
+                  Bio
+                  <textarea
+                    value={user?.bio ?? ""}
+                    readOnly
+                    rows={2}
+                    className="mt-2 w-full resize-none rounded-lg bg-[#1c1f28] px-3.5 py-2.5 text-sm text-[#e0e2ee] outline-none"
+                  />
+                </label>
+              </div>
+              <button
+                type="button"
+                disabled
+                className="mt-5 flex items-center gap-2 rounded-lg bg-[#272a32] px-4 py-2 text-xs font-semibold text-[#928f9f]"
+              >
+                <Save size={14} /> Save Profile Changes (API unavailable)
+              </button>
+            </section>
+
+            <section id="account-info" className="rounded-xl bg-[#181b24] p-6">
+              <div className="flex items-center gap-2">
+                <BadgeCheck size={19} className="text-[#c7bfff]" />
+                <h2 className="text-lg font-semibold">Account Information</h2>
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg bg-[#1c1f28] p-4">
+                  <p className="text-[11px] uppercase tracking-wider text-[#c8c4d6]">Email</p>
+                  <p className="mt-2 text-sm text-[#e0e2ee]">{user?.email}</p>
+                </div>
+                <div className="rounded-lg bg-[#1c1f28] p-4">
+                  <p className="text-[11px] uppercase tracking-wider text-[#c8c4d6]">Role</p>
+                  <p className="mt-2 font-mono text-sm text-[#c7bfff]">{user?.role}</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="password-auth" className="rounded-xl bg-[#181b24] p-6">
+              <div className="flex items-center gap-2">
+                <KeyRound size={19} className="text-[#c7bfff]" />
+                <h2 className="text-lg font-semibold">Password & Authentication</h2>
+              </div>
+              <p className="mt-2 text-sm text-[#c8c4d6]">
+                Password and session management endpoints are not implemented yet.
+              </p>
+              <button
+                type="button"
+                disabled
+                className="mt-5 flex items-center gap-2 rounded-lg bg-[#272a32] px-4 py-2 text-xs font-semibold text-[#928f9f]"
+              >
+                <Lock size={14} /> Change Password (Unavailable)
+              </button>
+            </section>
+
+            <section id="privacy-data" className="rounded-xl bg-[#181b24] p-6">
+              <div className="flex items-center gap-2">
+                <Eye size={19} className="text-[#c7bfff]" />
+                <h2 className="text-lg font-semibold">Privacy & Data</h2>
+              </div>
+              <p className="mt-2 text-sm text-[#c8c4d6]">
+                Privacy preferences and activity data APIs are not implemented yet.
+              </p>
+              <div className="mt-5 rounded-lg bg-[#1c1f28] p-4 text-xs text-[#928f9f]">
+                No preference changes are being saved locally or presented as persistent.
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\services\api.ts ===
+
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "/api",
+
+  headers: {
+    "Content-Type": "application/json",
+  },
+
+  withCredentials: true,
+
+  timeout: 10000,
+});
+
+export default api;
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\services\authservices.ts ===
+
+import api from "./api";
+import axios from "axios";
+import type {
+  LoginData,
+  RegisterData,
+} from "../features/auth/types/auth.types";
+
+export interface ApiUser {
+  id: string;
+  username: string;
+  email: string;
+  avatar: string | null;
+  bio: string | null;
+  role: "user" | "super_admin";
+  status: "active" | "suspended" | "banned";
+  createdAt: string;
+}
+
+interface AuthResponse {
+  success: boolean;
+  data: {
+    user: ApiUser;
+  };
+}
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as
+      | { message?: string; errors?: Array<{ message?: string }> }
+      | undefined;
+    const validationMessage = data?.errors
+      ?.map((item) => item.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+
+    return validationMessage || data?.message || fallback;
+  }
+
+  return error instanceof Error ? error.message : fallback;
+}
+
+export async function login(data: LoginData): Promise<ApiUser> {
+  const response = await api.post<AuthResponse>(
+    "/auth/login",
+    data
+  );
+
+  return response.data.data.user;
+}
+
+export async function register(
+  data: RegisterData
+): Promise<ApiUser> {
+  const response = await api.post<AuthResponse>(
+    "/auth/register",
+    data
+  );
+
+  return response.data.data.user;
+}
+
+export async function logout(): Promise<void> {
+  await api.post("/auth/logout");
+}
+
+export async function getCurrentUser(): Promise<ApiUser> {
+  const response = await api.get<AuthResponse>("/auth/me");
+
+  return response.data.data.user;
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\App.tsx ===
+
+import { AuthProvider } from "./context/AuthContext";
+import AppRouter from "./app/providers/AppRouter";
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\index.css ===
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-canvas: #0b0d12;
+  --color-sidebar: #10131b;
+  --color-surface: #151923;
+  --color-surface-raised: #1b2030;
+  --color-surface-muted: #10131b;
+  --color-accent: #8b7cff;
+  --color-accent-hover: #a397ff;
+  --color-accent-deep: #5948c8;
+  --color-accent-subdued: #292444;
+  --color-content: #f3f4f8;
+  --color-content-muted: #a0a6b5;
+  --color-content-subdued: #737b8d;
+  --color-content-disabled: #4d5565;
+  --color-border: #252b38;
+  --color-border-hover: #373f50;
+  --color-success: #35c98a;
+  --color-danger: #f16b75;
+  --color-warning: #e9b45b;
+}
+
+:root {
+  color: #f3f4f8;
+  background: #0b0d12;
+  font-family: 'Inter', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0b0d12;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: #0b0d12;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8b7cff;
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #0b0d12;
+  background: #8b7cff;
+}
+
+.nexus-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 760px) 320px;
+  gap: 2rem;
+  width: min(100% - 4rem, 1400px);
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.nexus-sidebar {
+  border-right: 1px solid #252b38;
+  background: #10131b;
+}
+
+.nexus-main {
+  min-width: 0;
+  padding: 2rem 0;
+}
+
+.nexus-context {
+  padding: 2rem 0;
+}
+
+.nexus-card {
+  border: 1px solid #252b38;
+  border-radius: 1rem;
+  background: #151923;
+}
+
+.nexus-card:hover {
+  border-color: #373f50;
+}
+
+.nexus-label {
+  color: #737b8d;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 0.875rem;
+  text-transform: uppercase;
+}
+
+.nexus-title {
+  color: #f3f4f8;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 2rem;
+}
+
+.nexus-body {
+  color: #a0a6b5;
+  font-size: 0.875rem;
+  letter-spacing: -0.006em;
+  line-height: 1.45rem;
+}
+
+@media (max-width: 1279px) {
+  .nexus-shell {
+    grid-template-columns: 64px minmax(0, 760px);
+    gap: 1.5rem;
+    width: min(100% - 3rem, 824px);
+  }
+
+  .nexus-context {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .nexus-shell {
+    display: block;
+    width: 100%;
+  }
+
+  .nexus-sidebar {
+    min-height: 3.75rem;
+    border-right: 0;
+    border-bottom: 1px solid #252b38;
+  }
+
+  .nexus-main {
+    padding: 1rem 0.75rem 5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+=== C:\Users\24P0030\reddit_clone\frontend\src\main.tsx ===
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+=== C:\Users\24P0030\reddit_clone\docs\FRONTEND_INTEGRATION_STATUS.md ===
+# Frontend Integration Status
+
+## Ready
+
+- Login uses `POST /api/auth/login`.
+- Registration uses `POST /api/auth/register`.
+- Session restoration uses `GET /api/auth/me`.
+- Logout uses `POST /api/auth/logout`.
+- Authentication uses the backend HttpOnly `community.sid` cookie through Axios
+  with `withCredentials: true`.
+- Protected routes wait for session verification and restrict `/admin` to the
+  backend `super_admin` role.
+- Backend error messages and validation messages are displayed on login and
+  registration forms.
+- The frontend Vite development server proxies `/api` to
+  `http://localhost:5000`.
+
+## Preserved pages
+
+These routes remain available with their Nexus visual direction:
+
+- `/login`
+- `/register`
+- `/profile`
+- `/settings` and `/settings/profile`
+- `/admin`
+
+The profile page displays the authenticated user's real username, email,
+avatar, bio, role, and creation date. Profile activity and counts show honest
+empty states because those APIs do not exist yet.
+
+## Placeholders
+
+The following routes remain in the router but are intentionally minimal:
+
+- `/search`
+- `/u/:username/followers`
+- `/u/:username/following`
+
+They use the shared `FeaturePlaceholder` component and do not contain fake
+results or local follow state.
+
+## Backend endpoints connected
+
+| Method | Endpoint | Frontend usage |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Registration |
+| `POST` | `/api/auth/login` | Login |
+| `POST` | `/api/auth/logout` | Logout |
+| `GET` | `/api/auth/me` | Session restoration |
+
+## Backend endpoints still required
+
+The backend currently does not expose endpoints for:
+
+- Public user profile lookup by username
+- Profile updates for username, avatar, or bio
+- Password changes
+- Followers/following lists and follow/unfollow actions
+- Posts, comments, communities, and profile activity
+- Search
+- Admin users, analytics, reports, moderation, and audit logs
+- Privacy preferences, connected accounts, or session management
+
+The frontend leaves controls for these areas disabled or displays an empty
+state instead of claiming that data was saved.
+
+## Removed mock data
+
+- `frontend/src/features/profile/data/mockprofile.ts`
+- Mock search posts, communities, and users
+- Mock followers and following lists
+- Mock admin users, analytics, moderation results, and activity logs
+- Anonymous guest names stored in `sessionStorage`
+
+## Validation
+
+The following commands pass:
+
+```powershell
+cd frontend
+npm run build
+npm run lint
+
+cd ..\backend
+npm run build
+npm run lint
+```
+
+Real registration, login, and session persistence require a running MongoDB
+instance and a configured backend `.env` file. The frontend itself does not
+store session tokens or trusted authentication state in browser storage.
+
+## Provisioning a super admin
+
+Registration intentionally creates only normal users. To create or update a
+super admin locally, set these environment variables in the terminal and run
+the provisioning command:
+
+```powershell
+cd backend
+$env:ADMIN_EMAIL = "admin@example.com"
+$env:ADMIN_PASSWORD = "use-a-strong-password"
+$env:ADMIN_USERNAME = "admin"
+npm run admin:create
+```
+
+The command hashes the password with Argon2, activates the account, and assigns
+the `super_admin` role. Credentials are not stored in source code.
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\AdminAuditLog.ts ===
+import { Schema, model } from 'mongoose'
+
+const adminAuditLogSchema = new Schema(
+  {
+    admin: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    action: { type: String, required: true },
+    targetType: {
+      type: String,
+      enum: ['user', 'post', 'comment', 'community'],
+      required: true,
+    },
+    targetId: { type: Schema.Types.ObjectId, required: true },
+    details: { type: Schema.Types.Mixed, default: null },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { collection: 'admin_audit_logs' },
+)
+
+adminAuditLogSchema.index({ admin: 1, createdAt: 1 })
+adminAuditLogSchema.index({ targetType: 1, targetId: 1 })
+
+export const AdminAuditLog = model('AdminAuditLog', adminAuditLogSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\BanRecord.ts ===
+import { Schema, model } from 'mongoose'
+
+const banRecordSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    admin: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    reason: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ['suspension', 'temporary_ban', 'permanent_ban'],
+      required: true,
+    },
+    expiresAt: { type: Date, default: null },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { collection: 'ban_records' },
+)
+
+banRecordSchema.index({ user: 1, createdAt: 1 })
+banRecordSchema.index({ admin: 1, createdAt: 1 })
+
+export const BanRecord = model('BanRecord', banRecordSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\Comment.ts ===
+import { Schema, model } from 'mongoose'
+
+const commentSchema = new Schema(
+  {
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    post: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+    parent: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
+    content: { type: String, required: true },
+    deletedAt: { type: Date, default: null },
+  },
+  { timestamps: true, collection: 'comments' },
+)
+
+commentSchema.index({ post: 1, parent: 1, createdAt: 1 })
+commentSchema.index({ author: 1, createdAt: 1 })
+commentSchema.index({ parent: 1 })
+
+export const Comment = model('Comment', commentSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\Community.ts ===
+import { Schema, model } from 'mongoose'
+
+const communitySchema = new Schema(
+  {
+    name: { type: String, required: true },
+    normalizedName: { type: String, required: true, unique: true },
+    description: { type: String, default: '' },
+    icon: { type: String, default: null },
+    creator: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  },
+  { timestamps: true, collection: 'communities' },
+)
+
+communitySchema.index({ creator: 1 })
+communitySchema.index({ createdAt: 1 })
+
+export const Community = model('Community', communitySchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\CommunityMember.ts ===
+import { Schema, model } from 'mongoose'
+
+const communityMemberSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    community: {
+      type: Schema.Types.ObjectId,
+      ref: 'Community',
+      required: true,
+    },
+    joinedAt: { type: Date, default: Date.now },
+  },
+  { collection: 'community_members' },
+)
+
+communityMemberSchema.index({ user: 1, community: 1 }, { unique: true })
+communityMemberSchema.index({ community: 1, joinedAt: 1 })
+communityMemberSchema.index({ user: 1, joinedAt: 1 })
+
+export const CommunityMember = model('CommunityMember', communityMemberSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\index.ts ===
+export { AdminAuditLog } from './AdminAuditLog.js'
+export { BanRecord } from './BanRecord.js'
+export { Comment } from './Comment.js'
+export { Community } from './Community.js'
+export { CommunityMember } from './CommunityMember.js'
+export { Post } from './Post.js'
+export { User } from './User.js'
+export { UserFollow } from './UserFollow.js'
+export { Vote } from './Vote.js'
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\Post.ts ===
+import { Schema, model } from 'mongoose'
+
+const postSchema = new Schema(
+  {
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    community: {
+      type: Schema.Types.ObjectId,
+      ref: 'Community',
+      required: true,
+    },
+    title: { type: String, required: true },
+    type: { type: String, enum: ['text', 'link'], required: true },
+    body: { type: String, default: null },
+    url: { type: String, default: null },
+    deletedAt: { type: Date, default: null },
+  },
+  { timestamps: true, collection: 'posts' },
+)
+
+postSchema.index({ author: 1, createdAt: 1 })
+postSchema.index({ community: 1, createdAt: 1 })
+postSchema.index({ createdAt: 1 })
+
+export const Post = model('Post', postSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\Sessions.ts ===
+
+import mongoose, { Schema } from "mongoose";
+
+const sessionSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    tokenHash: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    lastUsedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: true },
+);
+
+sessionSchema.index(
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 },
+);
+
+export const Session = mongoose.model("Session", sessionSchema);
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\User.ts ===
+
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
+
+const userSchema = new Schema(
+  {
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      minlength: 3,
+      maxlength: 30,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    passwordHash: {
+      type: String,
+      required: true,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["user", "super_admin"],
+      default: "user",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "suspended", "banned"],
+      default: "active",
+      required: true,
+    },
+    avatar: { type: String, default: null },
+    bio: { type: String, default: "" },
+  },
+  { timestamps: true },
+);
+
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
+
+export type UserDocument = InferSchemaType<typeof userSchema>;
+export const User = mongoose.model("User", userSchema);
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\UserFollow.ts ===
+import { Schema, model } from 'mongoose'
+
+const userFollowSchema = new Schema(
+  {
+    follower: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    following: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { collection: 'user_follows' },
+)
+
+userFollowSchema.index({ follower: 1, following: 1 }, { unique: true })
+userFollowSchema.index({ follower: 1 })
+userFollowSchema.index({ following: 1 })
+
+export const UserFollow = model('UserFollow', userFollowSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\models\Vote.ts ===
+import { Schema, model } from 'mongoose'
+
+const voteSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    targetType: { type: String, enum: ['post', 'comment'], required: true },
+    target: { type: Schema.Types.ObjectId, required: true },
+    value: { type: Number, enum: [1, -1], required: true },
+  },
+  { timestamps: true, collection: 'votes' },
+)
+
+voteSchema.index({ user: 1, targetType: 1, target: 1 }, { unique: true })
+voteSchema.index({ targetType: 1, target: 1 })
+
+export const Vote = model('Vote', voteSchema)
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\auth\auth.controller.ts ===
+
+import type { Request, Response } from "express";
+import { User } from "../../models/User.js";
+import {
+  registerSchema,
+  loginSchema,
+} from "./auth.validation.js";
+import {
+  registerUser,
+  loginUser,
+  toPublicUser,
+} from "./auth.service.js";
+import {
+  COOKIE_NAME,
+  createSession,
+  setSessionCookie,
+  clearSessionCookie,
+  revokeSession,
+} from "../../lib/session.js";
+import { AppError } from "../../lib/AppError.js";
+
+export async function register(req: Request,res: Response,) {
+  const input = registerSchema.parse(req.body);
+  const user = await registerUser(input);
+
+  const token = await createSession(user.id);
+  setSessionCookie(res, token);
+
+  res.status(201).json({
+    success: true,
+    data: { user: toPublicUser(user) },
+  });
+}
+
+export async function login(
+  req: Request,
+  res: Response,
+) {
+  const input = loginSchema.parse(req.body);
+  const user = await loginUser(input);
+
+  // Revoke the previous session.
+  await revokeSession(req.cookies?.[COOKIE_NAME]);
+
+  const token = await createSession(user.id);
+  setSessionCookie(res, token);
+
+  res.status(200).json({
+    success: true,
+    data: { user: toPublicUser(user) },
+  });
+}
+
+export async function logout(
+  req: Request,
+  res: Response,
+) {
+  await revokeSession(req.cookies?.[COOKIE_NAME]);
+  clearSessionCookie(res);
+
+  res.status(204).send();
+}
+
+export async function getMe(
+  req: Request,
+  res: Response,
+) {
+  if (!req.auth) {
+    throw new AppError(401, "Authentication required");
+  }
+
+  const user = await User.findById(req.auth.userId);
+
+  if (!user || user.status !== "active") {
+    throw new AppError(401, "Session is no longer valid");
+  }
+
+  res.status(200).json({
+    success: true,
+    data: { user: toPublicUser(user) },
+  });
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\auth\auth.routers.ts ===
+
+import { Router } from "express";
+import { rateLimit } from "express-rate-limit";
+import {
+  register,
+  login,
+  logout,
+  getMe,
+} from "./auth.controller.js";
+import { authenticate } from "../../middleware/authenticate.js";
+import { requireTrustedOrigin } from "../../middleware/requireTrustedOrigin.js";
+
+const router = Router();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many attempts. Try again later.",
+  },
+});
+
+router.post(
+  "/register",
+  requireTrustedOrigin,
+  authLimiter,
+  register,
+);
+
+router.post(
+  "/login",
+  requireTrustedOrigin,
+  authLimiter,
+  login,
+);
+
+router.post(
+  "/logout",
+  requireTrustedOrigin,
+  logout,
+);
+
+router.get("/me", authenticate, getMe);
+
+export default router;
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\auth\auth.service.ts ===
+
+import argon2 from "argon2";
+import { User } from "../../models/User.js";
+import { AppError } from "../../lib/AppError.js";
+import type {
+  RegisterInput,
+  LoginInput,
+} from "./auth.validation.js";
+
+export function toPublicUser(user: {
+  _id: { toString(): string };
+  username: string;
+  email: string;
+  role: string;
+  status: string;
+  avatar?: string | null;
+  bio?: string | null;
+  createdAt?: Date;
+}) {
+  return {
+    id: user._id.toString(),
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar ?? null,
+    bio: user.bio ?? null,
+    role: user.role,
+    status: user.status,
+    createdAt: user.createdAt?.toISOString() ?? new Date().toISOString(),
+  };
+}
+
+
+export async function registerUser(input: RegisterInput) {
+  const existingUser = await User.findOne({
+    $or: [
+      { email: input.email },
+      { username: input.username },
+    ],
+  });
+
+  if (existingUser) {
+    throw new AppError(
+      409,
+      "Email or username is already registered",
+    );
+  }
+
+  const passwordHash = await argon2.hash(input.password, {
+    type: argon2.argon2id,
+    memoryCost: 19456,
+    timeCost: 2,
+    parallelism: 1,
+  });
+
+  return User.create({
+    username: input.username,
+    email: input.email,
+    passwordHash,
+    role: "user",
+    status: "active",
+  });
+}
+
+export async function loginUser(input: LoginInput) {
+  const user = await User.findOne({
+    email: input.email,
+  }).select("+passwordHash");
+
+  if (!user) {
+    throw new AppError(401, "Invalid email or password");
+  }
+
+  const validPassword = await argon2.verify(
+    user.passwordHash,
+    input.password,
+  );
+
+  if (!validPassword) {
+    throw new AppError(401, "Invalid email or password");
+  }
+
+  if (user.status !== "active") {
+    throw new AppError(403, "Account is banned");
+  }
+
+  return user;
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\auth\auth.validation.ts ===
+
+import { z } from "zod";
+
+export const registerSchema = z.object({
+  username: z.string()
+    .trim()
+    .min(3)
+    .max(30)
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can contain letters, numbers, and underscores only",
+    )
+    .transform(value => value.toLowerCase()),
+
+  email: z.email()
+    .trim()
+    .transform(value => value.toLowerCase()),
+
+  password: z.string()
+    .min(8)
+    .max(128),
+}).strict();
+
+export const loginSchema = z.object({
+  email: z.email()
+    .trim()
+    .transform(value => value.toLowerCase()),
+
+  password: z.string().min(8).max(128),
+}).strict();
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\comments\comment.controller.ts ===
+
+import type { Request, Response } from "express";
+import { AppError } from "../../lib/AppError.js";
+
+import {
+  createCommentSchema,
+  updateCommentSchema,
+  commentIdSchema,
+  postIdSchema,
+  paginationSchema,
+} from "./comment.validation.js";
+
+import {
+  createComment,
+  getPostComments,
+  getCommentReplies,
+  getCommentById,
+  updateComment,
+  deleteComment,
+} from "./comment.service.js";
+
+// POST: Create a comment or reply
+export async function createCommentController(
+  req: Request,
+  res: Response
+) {
+  if (!req.auth) {
+    throw new AppError(401, "Authentication required");
+  }
+
+  const input = createCommentSchema.parse(req.body);
+
+  const comment = await createComment({
+    authorId: req.auth.userId,
+    postId: input.post,
+    content: input.content,
+    parentId: input.parent,
+  });
+
+  res.status(201).json({
+    success: true,
+    data: { comment },
+  });
+}
+
+// GET: Get comments belonging to a post
+export async function getPostCommentsController(
+  req: Request,
+  res: Response
+) {
+  const { postId } = postIdSchema.parse(req.params);
+  const pagination = paginationSchema.parse(req.query);
+
+  const result = await getPostComments(postId, pagination);
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
+}
+
+// GET: Get replies belonging to a comment
+export async function getCommentRepliesController(
+  req: Request,
+  res: Response
+) {
+  const { id } = commentIdSchema.parse(req.params);
+  const pagination = paginationSchema.parse(req.query);
+
+  const result = await getCommentReplies(id, pagination);
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
+}
+
+// GET: Get one comment
+export async function getCommentController(
+  req: Request,
+  res: Response
+) {
+  const { id } = commentIdSchema.parse(req.params);
+
+  const comment = await getCommentById(id);
+
+  res.status(200).json({
+    success: true,
+    data: { comment },
+  });
+}
+
+// PATCH: Edit your own comment
+export async function updateCommentController(
+  req: Request,
+  res: Response
+) {
+  if (!req.auth) {
+    throw new AppError(401, "Authentication required");
+  }
+
+  const { id } = commentIdSchema.parse(req.params);
+  const input = updateCommentSchema.parse(req.body);
+
+  const comment = await updateComment(
+    id,
+    req.auth.userId,
+    input.content
+  );
+
+  res.status(200).json({
+    success: true,
+    data: { comment },
+  });
+}
+
+// DELETE: Delete your own comment
+export async function deleteCommentController(
+  req: Request,
+  res: Response
+) {
+  if (!req.auth) {
+    throw new AppError(401, "Authentication required");
+  }
+
+  const { id } = commentIdSchema.parse(req.params);
+
+  await deleteComment(id, req.auth.userId);
+
+  res.status(204).send();
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\comments\comment.routes.ts ===
+import { Router } from "express";
+
+import { authenticate } from "../../middleware/authenticate.js";
+import { requireTrustedOrigin } from "../../middleware/requireTrustedOrigin.js";
+
+import {
+  createCommentController,
+  getPostCommentsController,
+  getCommentRepliesController,
+  getCommentController,
+  updateCommentController,
+  deleteCommentController,
+} from "./comment.controller.js";
+
+const router = Router();
+
+// Create a comment or reply (requires login)
+router.post("/", authenticate, requireTrustedOrigin, createCommentController);
+
+// Get top-level comments for a post (public)
+router.get("/posts/:postId", getPostCommentsController);
+
+// Get replies to a comment (public)
+router.get("/:id/replies", getCommentRepliesController);
+
+// Get one comment (public)
+router.get("/:id", getCommentController);
+
+// Edit a comment (requires login)
+router.patch("/:id", authenticate, requireTrustedOrigin, updateCommentController);
+
+// Delete a comment (requires login)
+router.delete("/:id", authenticate, requireTrustedOrigin, deleteCommentController);
+
+export default router;
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\comments\comment.service.ts ===
+
+import { Comment } from "../../models/Comment.js";
+import { Post } from "../../models/Post.js";
+import { Community } from "../../models/Community.js";
+import { AppError } from "../../lib/AppError.js";
+
+interface CreateCommentInput {
+  authorId: string;
+  postId: string;
+  content: string;
+  parentId?: string;
+}
+
+interface PaginationInput {
+  page: number;
+  limit: number;
+}
+
+export async function createComment(
+  input: CreateCommentInput
+) {
+  const { authorId, postId, content, parentId } = input;
+
+  const post = await Post.findOne({
+    _id: postId,
+    deletedAt: null,
+  });
+
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  if (parentId) {
+    const parentComment = await Comment.findOne({
+      _id: parentId,
+      post: postId,
+      deletedAt: null,
+    });
+
+    if (!parentComment) {
+      throw new AppError(
+        404,
+        "Parent comment not found for this post"
+      );
+    }
+  }
+
+  return Comment.create({
+    author: authorId,
+    post: postId,
+    parent: parentId ?? null,
+    content,
+  });
+}
+
+// Get top-level comments belonging to a post
+export async function getPostComments(
+  postId: string,
+  pagination: PaginationInput
+) {
+  const { page, limit } = pagination;
+  const skip = (page - 1) * limit;
+
+  const post = await Post.findOne({
+    _id: postId,
+    deletedAt: null,
+  });
+
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  const [comments, total] = await Promise.all([
+    Comment.find({
+      post: postId,
+      parent: null,
+      deletedAt: null,
+    })
+      .sort({ createdAt: 1, _id: 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("author", "username"),
+
+    Comment.countDocuments({
+      post: postId,
+      parent: null,
+      deletedAt: null,
+    }),
+  ]);
+
+  return {
+    comments,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+// Get replies belonging to a comment
+export async function getCommentReplies(
+  commentId: string,
+  pagination: PaginationInput
+) {
+  const { page, limit } = pagination;
+  const skip = (page - 1) * limit;
+
+  const parentComment = await Comment.findOne({
+    _id: commentId,
+    deletedAt: null,
+  });
+
+  if (!parentComment) {
+    throw new AppError(404, "Comment not found");
+  }
+
+  const [replies, total] = await Promise.all([
+    Comment.find({
+      parent: commentId,
+      deletedAt: null,
+    })
+      .sort({ createdAt: 1, _id: 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("author", "username"),
+
+    Comment.countDocuments({
+      parent: commentId,
+      deletedAt: null,
+    }),
+  ]);
+
+  return {
+    replies,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+// Get one comment
+export async function getCommentById(commentId: string) {
+  const comment = await Comment.findOne({
+    _id: commentId,
+    deletedAt: null,
+  }).populate("author", "username");
+
+  if (!comment) {
+    throw new AppError(404, "Comment not found");
+  }
+
+  return comment;
+}
+
+// Edit a comment
+export async function updateComment(
+  commentId: string,
+  userId: string,
+  content: string
+) {
+  const comment = await Comment.findOne({
+    _id: commentId,
+    author: userId,
+    deletedAt: null,
+  });
+
+  if (!comment) {
+    throw new AppError(
+      404,
+      "Comment not found or you are not its author"
+    );
+  }
+
+  comment.content = content;
+  await comment.save();
+
+  return comment;
+}
+
+// Soft-delete a comment
+export async function deleteComment(commentId: string, userId: string) {
+  const comment = await Comment.findOne({
+    _id: commentId,
+    deletedAt: null,
+  });
+
+  if (!comment) {
+    throw new AppError(404, "Comment not found");
+  }
+
+  const isCommentAuthor = comment.author.toString() === userId;
+  if (!isCommentAuthor) {
+    const post = await Post.findOne({
+      _id: comment.post,
+      deletedAt: null,
+    }).select("community");
+
+    if (!post) {
+      throw new AppError(404, "Post not found");
+    }
+
+    const community = await Community.findOne({
+      _id: post.community,
+    }).select("creator");
+
+    if (!community) {
+      throw new AppError(404, "Community not found");
+    }
+
+    const isCommunityCreator = community.creator.toString() === userId;
+
+    if (!isCommunityCreator) {
+      throw new AppError(
+        403,
+        "You are not allowed to delete this comment",
+      );
+    }
+  }
+  comment.deletedAt = new Date();
+
+  await comment.save();
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\comments\comment.validation.ts ===
+
+import { z } from "zod";
+import mongoose from "mongoose";
+
+const objectIdSchema = z.string().refine(
+  (id) => mongoose.Types.ObjectId.isValid(id),
+  "Invalid MongoDB ID",
+);
+
+// Creating a comment or reply
+export const createCommentSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, "Comment cannot be empty")
+    .max(10000, "Comment cannot exceed 10,000 characters"),
+
+  post: objectIdSchema,
+
+  parent: objectIdSchema.optional(),
+}).strict();
+
+// Editing a comment
+export const updateCommentSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, "Comment cannot be empty")
+    .max(10000, "Comment cannot exceed 10,000 characters"),
+}).strict();
+
+// Validating IDs in URLs
+export const commentIdSchema = z.object({
+  id: objectIdSchema,
+});
+
+export const postIdSchema = z.object({
+  postId: objectIdSchema,
+});
+
+// Pagination
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\search\search.controller.ts ===
+import type { RequestHandler } from "express";
+
+import {
+  searchCommunities,
+  searchUsers,
+} from "./search.service.js";
+
+import { searchQuerySchema } from "./search.validation.js";
+
+// Search for communities.
+export const searchCommunitiesController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const parsed = searchQuerySchema.safeParse(req.query);
+
+    if (!parsed.success) {
+      return next(parsed.error);
+    }
+
+    const result = await searchCommunities(parsed.data);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Search for users.
+export const searchUsersController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const parsed = searchQuerySchema.safeParse(req.query);
+
+    if (!parsed.success) {
+      return next(parsed.error);
+    }
+
+    const result = await searchUsers(parsed.data);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\search\search.routes.ts ===
+import { Router } from "express";
+
+import {
+  searchCommunitiesController,
+  searchUsersController,
+} from "./search.controller.js";
+
+const router = Router();
+
+// Search for communities.
+router.get("/communities", searchCommunitiesController);
+
+// Search for users.
+router.get("/users", searchUsersController);
+
+export default router;
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\search\search.service.ts ===
+import { Community } from "../../models/Community.js";
+import { User } from "../../models/User.js";
+
+// Escape special regular expression characters in the search term.
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+interface SearchInput {
+  q: string;
+  page: number;
+  limit: number;
+}
+
+// Search communities by name, normalized name, or description.
+export async function searchCommunities(input: SearchInput) {
+  const { q, page, limit } = input;
+  const skip = (page - 1) * limit;
+  const searchTerm = escapeRegex(q);
+
+  const filter = {
+    $or: [
+      { name: { $regex: searchTerm, $options: "i" } },
+      { normalizedName: { $regex: searchTerm, $options: "i" } },
+      { description: { $regex: searchTerm, $options: "i" } },
+    ],
+  };
+
+  const [communities, total] = await Promise.all([
+    Community.find(filter)
+      .select("name description icon creator createdAt")
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("creator", "username avatar"),
+
+    Community.countDocuments(filter),
+  ]);
+
+  return {
+    communities,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+// Search users by username.
+export async function searchUsers(input: SearchInput) {
+  const { q, page, limit } = input;
+  const skip = (page - 1) * limit;
+  const searchTerm = escapeRegex(q);
+
+  const filter = {
+    username: { $regex: searchTerm, $options: "i" },
+    status: "active" as const,
+  };
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select("username avatar bio createdAt")
+      .sort({ username: 1 })
+      .skip(skip)
+      .limit(limit),
+
+    User.countDocuments(filter),
+  ]);
+
+  return {
+    users,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\search\search.validation.ts ===
+import { z } from "zod";
+
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(1, "Search query cannot be empty").max(100),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\votes\vote.controller.ts ===
+
+import type { RequestHandler } from "express";
+
+import {
+  castVote,
+  removeVote,
+  getVoteSummary,
+} from "./vote.service.js";
+
+import {
+  createVoteSchema,
+  voteTargetSchema,
+} from "./vote.validation.js";
+
+// Create a vote or update an existing vote.
+export const castVoteController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const parsed = createVoteSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return next(parsed.error);
+    }
+
+    const { targetType, target, value } = parsed.data;
+
+    const vote = await castVote({
+      userId: req.auth!.userId,
+      targetType,
+      targetId: target,
+      value,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Vote saved successfully",
+      data: vote,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Remove the current user's vote.
+export const removeVoteController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const parsed = voteTargetSchema.safeParse(req.params);
+
+    if (!parsed.success) {
+      return next(parsed.error);
+    }
+
+    const { targetType, targetId } = parsed.data;
+
+    const result = await removeVote(
+      req.auth!.userId,
+      targetType,
+      targetId,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: result.removed
+        ? "Vote removed successfully"
+        : "You have not voted on this target",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get the total score and current user's vote.
+export const getVoteSummaryController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const parsed = voteTargetSchema.safeParse(req.params);
+
+    if (!parsed.success) {
+      return next(parsed.error);
+    }
+
+    const { targetType, targetId } = parsed.data;
+
+    const summary = await getVoteSummary(
+      req.auth!.userId,
+      targetType,
+      targetId,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\votes\vote.routes.ts ===
+
+import { Router } from "express";
+
+import { authenticate } from "../../middleware/authenticate.js";
+import { requireTrustedOrigin } from "../../middleware/requireTrustedOrigin.js";
+
+import {
+  castVoteController,
+  removeVoteController,
+  getVoteSummaryController,
+} from "./vote.controller.js";
+
+const router = Router();
+
+// Create a vote or update an existing vote.
+router.post(
+  "/",
+  authenticate,
+  requireTrustedOrigin,
+  castVoteController,
+);
+
+// Remove the current user's vote.
+router.delete(
+  "/:targetType/:targetId",
+  authenticate,
+  requireTrustedOrigin,
+  removeVoteController,
+);
+
+// Get the score and current user's vote.
+router.get(
+  "/:targetType/:targetId",
+  authenticate,
+  getVoteSummaryController,
+);
+
+export default router;
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\votes\vote.service.ts ===
+
+import mongoose from "mongoose";
+
+import { Vote } from "../../models/Vote.js";
+import { Post } from "../../models/Post.js";
+import { Comment } from "../../models/Comment.js";
+import { AppError } from "../../lib/AppError.js";
+
+type TargetType = "post" | "comment";
+
+interface CastVoteInput {
+  userId: string;
+  targetType: TargetType;
+  targetId: string;
+  value: 1 | -1;
+}
+
+// Check that the post or comment exists and has not been deleted.
+async function ensureTargetExists(
+  targetType: TargetType,
+  targetId: string,
+) {
+  const target =
+    targetType === "post"
+      ? await Post.findOne({
+          _id: targetId,
+          deletedAt: null,
+        }).select("_id")
+      : await Comment.findOne({
+          _id: targetId,
+          deletedAt: null,
+        }).select("_id");
+
+  if (!target) {
+    throw new AppError(404, `${targetType} not found`);
+  }
+}
+
+// 1. Create a vote or update the user's existing vote.
+export async function castVote(input: CastVoteInput) {
+  const { userId, targetType, targetId, value } = input;
+
+  await ensureTargetExists(targetType, targetId);
+
+  const vote = await Vote.findOneAndUpdate(
+    {
+      user: userId,
+      targetType,
+      target: targetId,
+    },
+    {
+      $set: { value },
+    },
+    {
+      new: true,
+      upsert: true,
+      runValidators: true,
+    },
+  );
+
+  return vote;
+}
+
+// 2. Remove the user's vote from a post or comment.
+export async function removeVote(
+  userId: string,
+  targetType: TargetType,
+  targetId: string,
+) {
+  await ensureTargetExists(targetType, targetId);
+
+  const result = await Vote.deleteOne({
+    user: userId,
+    targetType,
+    target: targetId,
+  });
+
+  return {
+    removed: result.deletedCount > 0,
+  };
+}
+
+// 3. Get the total score, upvotes, and downvotes.
+export async function getVoteScore(
+  targetType: TargetType,
+  targetId: string,
+) {
+  await ensureTargetExists(targetType, targetId);
+
+  const targetObjectId = new mongoose.Types.ObjectId(targetId);
+
+  const result = await Vote.aggregate([
+    {
+      $match: {
+        targetType,
+        target: targetObjectId,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        score: { $sum: "$value" },
+        upvotes: {
+          $sum: {
+            $cond: [{ $eq: ["$value", 1] }, 1, 0],
+          },
+        },
+        downvotes: {
+          $sum: {
+            $cond: [{ $eq: ["$value", -1] }, 1, 0],
+          },
+        },
+      },
+    },
+  ]);
+
+  // If nobody has voted, MongoDB returns an empty array.
+  return result[0] ?? {
+    score: 0,
+    upvotes: 0,
+    downvotes: 0,
+  };
+}
+
+// 4. Find the current user's vote on a target.
+export async function getUserVote(
+  userId: string,
+  targetType: TargetType,
+  targetId: string,
+) {
+  await ensureTargetExists(targetType, targetId);
+
+  const vote = await Vote.findOne({
+    user: userId,
+    targetType,
+    target: targetId,
+  }).select("value");
+
+  // 0 means the user has not voted.
+  return vote?.value ?? 0;
+}
+
+// 5. Get the score and the current user's vote together.
+export async function getVoteSummary(
+  userId: string,
+  targetType: TargetType,
+  targetId: string,
+) {
+  const [score, userVote] = await Promise.all([
+    getVoteScore(targetType, targetId),
+    getUserVote(userId, targetType, targetId),
+  ]);
+
+  return {
+    ...score,
+    userVote,
+  };
+}
+
+=== C:\Users\24P0030\reddit_clone\backend\src\modules\votes\vote.validation.ts ===
+import { z } from "zod";
+import mongoose from "mongoose";
+
+// Validate MongoDB ObjectIds
+const objectIdSchema = z.string().refine(
+  (id) => mongoose.Types.ObjectId.isValid(id),
+  "Invalid MongoDB ID",
+);
+
+// Validate creating or changing a vote
+export const createVoteSchema = z.object({
+  targetType: z.enum(["post", "comment"]),
+
+  target: objectIdSchema,
+
+  value: z.union([
+    z.literal(1),
+    z.literal(-1),
+  ]),
+}).strict();
+
+// Validate identifying a post or comment
+export const voteTargetSchema = z.object({
+  targetType: z.enum(["post", "comment"]),
+  targetId: objectIdSchema,
+}).strict();
+

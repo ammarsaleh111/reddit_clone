@@ -18,7 +18,7 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/profile";
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

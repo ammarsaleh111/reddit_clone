@@ -7,13 +7,16 @@ import FollowersPage from "../../features/follow/pages/FollowersPage";
 import ProfilePage from "../../features/profile/pages/ProfilePage";
 import SearchPage from "../../features/search/pages/SearchPage";
 import SettingsPage from "../../features/settings/pages/SettingsPage";
+import HomePage from "../../feed/pages/HomePage";
+import PostDetailPage from "../../feed/pages/PostDetailPage";
+
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default route */}
-        <Route path="/" element={<Navigate to="/profile" replace />} />
+        {/* Default Home Feed route */}
+        <Route path="/" element={<HomePage />} />
 
         {/* Authentication routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -57,7 +60,9 @@ export default function AppRouter() {
         />
 
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/profile" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/post/:postId" element={<PostDetailPage />} />
       </Routes>
     </BrowserRouter>
   );
