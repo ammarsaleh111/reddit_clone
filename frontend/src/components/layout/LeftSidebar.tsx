@@ -16,14 +16,12 @@ import type {
   FeedMode,
 } from "../../feed/types/feed.types";
 
-
 interface LeftSidebarProps {
   activeMode: FeedMode;
   selectedCommunity: string | null;
   communities: FeedCommunity[];
   onSelectMode: (mode: FeedMode) => void;
   onSelectCommunity: (normalizedName: string) => void;
-  onOpenCreateCommunity?: () => void;
 }
 
 const NAV_ITEMS: { id: FeedMode; label: string; icon: typeof Home }[] = [
@@ -38,7 +36,6 @@ export function LeftSidebar({
   communities,
   onSelectMode,
   onSelectCommunity,
-  onOpenCreateCommunity,
 }: LeftSidebarProps) {
   const { user, isAuthenticated } = useAuth();
   const [communitiesOpen, setCommunitiesOpen] = useState(true);
@@ -58,10 +55,13 @@ export function LeftSidebar({
     textAlign: "left",
   });
 
+  const submitPath = selectedCommunity
+    ? `/submit?community=${encodeURIComponent(selectedCommunity)}`
+    : "/submit";
+
   return (
     <aside
       aria-label="Primary navigation"
-      className="nexus-sidebar"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -70,6 +70,7 @@ export function LeftSidebar({
         top: 0,
         height: "100vh",
         overflowY: "auto",
+        background: "var(--color-canvas)",
       }}
     >
       <div>
@@ -116,7 +117,7 @@ export function LeftSidebar({
           </span>
         </Link>
 
-        {/* Primary Feed Modes */}
+        {/* Primary Feed Modes & Create Post */}
         <nav style={{ padding: "1rem", display: "grid", gap: "0.25rem" }}>
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
             const isActive = !selectedCommunity && activeMode === id;
@@ -133,6 +134,27 @@ export function LeftSidebar({
               </button>
             );
           })}
+
+          <Link
+            to={submitPath}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.625rem",
+              width: "100%",
+              marginTop: "0.375rem",
+              padding: "0.55rem 0.875rem",
+              borderRadius: "0.5rem",
+              background: "var(--color-accent)",
+              color: "var(--color-canvas)",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            <Plus size={18} />
+            <span>Create Post</span>
+          </Link>
         </nav>
 
         {/* My Communities */}
@@ -192,9 +214,8 @@ export function LeftSidebar({
                 );
               })}
 
-              <button
-                type="button"
-                onClick={onOpenCreateCommunity}
+              <Link
+                to="/communities"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -202,17 +223,16 @@ export function LeftSidebar({
                   width: "100%",
                   marginTop: "0.25rem",
                   padding: "0.5rem 0.875rem",
-                  border: "none",
                   borderRadius: "0.5rem",
-                  background: "transparent",
                   color: "var(--color-accent)",
                   fontSize: "0.75rem",
                   fontWeight: 500,
+                  textDecoration: "none",
                 }}
               >
-                <Plus size={15} />
-                <span>Create Community</span>
-              </button>
+                <Compass size={15} />
+                <span>Explore Communities</span>
+              </Link>
             </div>
           )}
         </div>

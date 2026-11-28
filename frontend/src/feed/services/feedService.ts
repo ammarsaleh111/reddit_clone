@@ -13,6 +13,49 @@ const LOCAL_POSTS_KEY = "nexus_local_posts";
 const LOCAL_COMMUNITIES_KEY = "nexus_local_communities";
 const LOCAL_COMMENTS_KEY = "nexus_local_comments";
 
+const DEFAULT_SEED_COMMUNITIES: FeedCommunity[] = [
+  {
+    _id: "comm-programming",
+    name: "programming",
+    normalizedName: "programming",
+    description: "Software engineering, algorithms, systems, and code.",
+    icon: null,
+    membersCount: 142890,
+  },
+  {
+    _id: "comm-devops",
+    name: "devops",
+    normalizedName: "devops",
+    description: "Containers, CI/CD, cloud infrastructure, and automation.",
+    icon: null,
+    membersCount: 92410,
+  },
+  {
+    _id: "comm-webdev",
+    name: "webdev",
+    normalizedName: "webdev",
+    description: "Frontend, backend, APIs, and modern web architecture.",
+    icon: null,
+    membersCount: 118500,
+  },
+  {
+    _id: "comm-linux",
+    name: "linux",
+    normalizedName: "linux",
+    description: "Linux distros, kernel, shell workflows, and open source.",
+    icon: null,
+    membersCount: 84150,
+  },
+  {
+    _id: "comm-design",
+    name: "design",
+    normalizedName: "design",
+    description: "UI/UX systems, typography, dark interfaces, and product craft.",
+    icon: null,
+    membersCount: 53200,
+  },
+];
+
 function readStorage<T>(key: string): T[] {
   try {
     const raw = sessionStorage.getItem(key);
@@ -67,7 +110,7 @@ export interface CreatePostPayload {
   communityId: string;
   communityName: string;
   title: string;
-  type: "text" | "link";
+  type?: "text" | "link";
   body?: string;
   url?: string;
   tag?: string;
@@ -96,6 +139,7 @@ function applyLocalFilters(
       (p) =>
         p.title.toLowerCase().includes(query) ||
         (p.body && p.body.toLowerCase().includes(query)) ||
+        (p.url && p.url.toLowerCase().includes(query)) ||
         p.community.name.toLowerCase().includes(query) ||
         p.author.username.toLowerCase().includes(query)
     );
@@ -284,9 +328,11 @@ export async function fetchCommunities(): Promise<FeedCommunity[]> {
       "/search/communities",
       { params: { q: "c", limit: 10 } }
     );
-    return [...localComms, ...(response.data.data.communities ?? [])];
+    const remoteComms = response.data.data.communities ?? [];
+    const merged = [...localComms, ...remoteComms];
+    return merged.length > 0 ? merged : DEFAULT_SEED_COMMUNITIES;
   } catch {
-    return localComms;
+    return localComms.length > 0 ? localComms : DEFAULT_SEED_COMMUNITIES;
   }
 }
 
@@ -294,6 +340,11 @@ export async function createPost(payload: CreatePostPayload): Promise<FeedPost> 
   const normalized = payload.communityName
     .toLowerCase()
     .replace(/[^a-z0-9_]/g, "");
+
+  const cleanBody = payload.body?.trim() || null;
+  const cleanUrl = payload.url?.trim() || null;
+  const resolvedType =
+    payload.type ?? (cleanUrl && !cleanBody ? "link" : "text");
 
   const buildLocalPost = (): FeedPost => {
     const post: FeedPost = {
@@ -307,9 +358,9 @@ export async function createPost(payload: CreatePostPayload): Promise<FeedPost> 
       },
       title: payload.title,
       tag: payload.tag || undefined,
-      type: payload.type,
-      body: payload.type === "text" ? payload.body ?? null : null,
-      url: payload.type === "link" ? payload.url ?? null : null,
+      type: resolvedType,
+      body: cleanBody,
+      url: cleanUrl,
       score: 1,
       commentsCount: 0,
       userVote: 1,
@@ -330,9 +381,9 @@ export async function createPost(payload: CreatePostPayload): Promise<FeedPost> 
     }>("/posts", {
       community: payload.communityId,
       title: payload.title,
-      type: payload.type,
-      body: payload.type === "text" ? payload.body : undefined,
-      url: payload.type === "link" ? payload.url : undefined,
+      type: resolvedType,
+      body: cleanBody ?? undefined,
+      url: cleanUrl ?? undefined,
       tag: payload.tag || undefined,
     });
     return response.data.data.post;

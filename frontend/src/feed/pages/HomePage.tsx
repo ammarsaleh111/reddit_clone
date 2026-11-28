@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "../../components/layout/AppLayout";
 import { useAuth } from "../../context/AuthContext";
 import { getApiErrorMessage } from "../../services/authservices";
-import { CreateCommunityModal } from "../components/CreateCommunityModal";
-import { CreatePostModal } from "../components/CreatePostModal";
 import { Feed } from "../components/Feed";
 import {
   fetchCommunities,
@@ -54,8 +52,6 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [apiUnavailable, setApiUnavailable] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [communityModalOpen, setCommunityModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -148,20 +144,12 @@ export default function HomePage() {
     setActiveMode("for-you");
   }
 
-  function handleOpenCreatePost() {
-    if (!isAuthenticated) {
-      navigate("/login");
+  function handleOpenCommunity(normalizedName: string | null) {
+    if (!normalizedName) {
+      setSelectedCommunity(null);
       return;
     }
-    setCreateModalOpen(true);
-  }
-
-  function handleOpenCreateCommunity() {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    setCommunityModalOpen(true);
+    navigate(`/c/${normalizedName}`);
   }
 
   const activeCommunity = communities.find(
@@ -187,10 +175,8 @@ export default function HomePage() {
       joinedIds={joinedIds}
       postCount={posts.length}
       onSelectMode={setActiveMode}
-      onSelectCommunity={setSelectedCommunity}
+      onSelectCommunity={handleOpenCommunity}
       onToggleJoin={handleToggleJoin}
-      onOpenCreatePost={handleOpenCreatePost}
-      onOpenCreateCommunity={handleOpenCreateCommunity}
     >
       <Feed
         title={headerTitle}
@@ -207,29 +193,8 @@ export default function HomePage() {
         onSortChange={setSort}
         onVote={handleVote}
         onToggleJoin={handleToggleJoin}
-        onSelectCommunity={(name) => setSelectedCommunity(name)}
+        onSelectCommunity={(name) => navigate(`/c/${name}`)}
         onResetFilters={handleResetFilters}
-      />
-
-      <CreatePostModal
-        isOpen={createModalOpen}
-        communities={communities}
-        defaultCommunity={selectedCommunity}
-        onClose={() => setCreateModalOpen(false)}
-        onPostCreated={(newPost) => {
-          setPosts((prev) => [newPost, ...prev]);
-          setApiUnavailable(false);
-        }}
-      />
-
-      <CreateCommunityModal
-        isOpen={communityModalOpen}
-        onClose={() => setCommunityModalOpen(false)}
-        onCommunityCreated={(newComm) => {
-          setCommunities((prev) => [newComm, ...prev]);
-          setJoinedIds((prev) => ({ ...prev, [newComm._id]: true }));
-          setSelectedCommunity(newComm.normalizedName);
-        }}
       />
     </AppLayout>
   );
