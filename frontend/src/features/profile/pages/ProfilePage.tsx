@@ -105,19 +105,14 @@ export default function ProfilePage() {
         <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 flex-col justify-between border-r border-[#252B38] bg-[#10131B] p-4 lg:flex">
           <nav className="space-y-1">
             <Link
-              to="/search"
+              to="/"
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923] hover:text-[#F3F4F8]"
             >
-              <Compass size={15} /> For You
+              <Compass size={15} /> Back to Feed
             </Link>
+            
             <Link
-              to={`/u/${user.username}/following`}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923] hover:text-[#F3F4F8]"
-            >
-              <Users size={15} /> Following
-            </Link>
-            <Link
-              to="/profile"
+              to="/"
               className="flex items-center gap-2.5 rounded-lg bg-[#292444] px-3 py-2 text-xs font-semibold"
             >
               <LayoutGrid size={15} className="text-[#8B7CFF]" /> Profile

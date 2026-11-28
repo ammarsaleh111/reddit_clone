@@ -12,7 +12,6 @@ interface RightSidebarProps {
 export function RightSidebar({
   communities,
   joinedIds,
-  postCount,
   onToggleJoin,
   onSelectCommunity,
 }: RightSidebarProps) {
@@ -28,39 +27,7 @@ export function RightSidebar({
         paddingTop: "0.875rem",
       }}
     >
-      {/* Active Feed Summary */}
-      <section className="nexus-card" style={{ padding: "1rem" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "0.75rem",
-          }}
-        >
-          <span className="nexus-label">Network Pulse</span>
-          <span
-            style={{
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              color: "var(--color-accent)",
-            }}
-          >
-            {postCount} {postCount === 1 ? "post" : "posts"}
-          </span>
-        </div>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "0.8125rem",
-            color: "var(--color-content-muted)",
-            lineHeight: 1.5,
-          }}
-        >
-          Browse communities, join technical channels, or publish a new thread
-          with text and links.
-        </p>
-      </section>
+      
 
       {/* Top Communities */}
       <section className="nexus-card" style={{ padding: "1rem" }}>

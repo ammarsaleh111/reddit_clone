@@ -1,4 +1,4 @@
-import mongoose, { Types, type PipelineStage } from "mongoose";
+import { Types, type PipelineStage } from "mongoose";
 import { z } from "zod";
 import { Community } from "../../models/Community.js";
 import { CommunityMember } from "../../models/CommunityMember.js";
@@ -393,37 +393,31 @@ export async function createCommunity(
     );
   }
 
-  const session = await mongoose.startSession();
-  let created: CommunityLean | null = null;
+  let created: CommunityLean;
 
   try {
-    await session.withTransaction(async () => {
-      const [community] = await Community.create(
-        [
-          {
-            name,
-            normalizedName,
-            description: input.description.trim(),
-            icon: input.iconUrl ?? null,
-            creator: userId,
-          },
-        ],
-        { session },
-      );
-
-      await CommunityMember.create(
-        [
-          {
-            user: userId,
-            community: community._id,
-            joinedAt: new Date(),
-          },
-        ],
-        { session },
-      );
-
-      created = community.toObject() as unknown as CommunityLean;
+    const community = await Community.create({
+      name,
+      normalizedName,
+      description: input.description.trim(),
+      icon: input.iconUrl ?? null,
+      creator: userId,
     });
+
+    created = community.toObject() as unknown as CommunityLean;
+
+    try {
+      await CommunityMember.create({
+        user: userId,
+        community: community._id,
+        joinedAt: new Date(),
+      });
+    } catch (error) {
+      // Keep creation atomic from the caller's perspective without requiring
+      // replica-set transactions: remove the community if membership fails.
+      await Community.deleteOne({ _id: community._id });
+      throw error;
+    }
   } catch (error) {
     if (isDuplicateKeyError(error)) {
       throw new AppError(
@@ -432,14 +426,7 @@ export async function createCommunity(
         "COMMUNITY_NAME_TAKEN",
       );
     }
-
     throw error;
-  } finally {
-    await session.endSession();
-  }
-
-  if (!created) {
-    throw new AppError(500, "Community could not be created.", "INTERNAL_ERROR");
   }
 
   const [dto] = await hydrateCommunities([created], {

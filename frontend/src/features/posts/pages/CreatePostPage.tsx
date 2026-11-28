@@ -154,7 +154,7 @@ export default function CreatePostPage() {
           <div className="space-y-6">
             <nav className="space-y-1">
               <Link
-                to="/search"
+                to="/"
                 className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-[#A0A6B5] hover:bg-[#151923] hover:text-[#F3F4F8]"
               >
                 <Compass size={15} /> Explore / Search

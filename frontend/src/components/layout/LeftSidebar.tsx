@@ -26,7 +26,6 @@ interface LeftSidebarProps {
 
 const NAV_ITEMS: { id: FeedMode; label: string; icon: typeof Home }[] = [
   { id: "for-you", label: "Home", icon: Home },
-  { id: "explore", label: "Explore", icon: Compass },
   { id: "following", label: "Following", icon: Users },
 ];
 

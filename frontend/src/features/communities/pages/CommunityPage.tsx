@@ -265,7 +265,7 @@ export default function CommunityPage() {
 
           <nav className="space-y-1 text-sm">
             <Link
-              to="/search"
+              to="/"
               className="block rounded-lg px-3 py-2 text-[#A7B0C0] hover:bg-[#151923] hover:text-white transition"
             >
               Explore / Search
