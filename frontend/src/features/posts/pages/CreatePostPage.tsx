@@ -133,7 +133,7 @@ export default function CreatePostPage() {
           </Link>
           <span className="hidden items-center gap-1.5 rounded-full border border-[#35C98A]/30 bg-[#35C98A]/10 px-2.5 py-0.5 font-mono text-[11px] text-[#35C98A] sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-[#35C98A]" />
-            {isAuthenticated ? @${user?.username} : "Guest"}
+            {isAuthenticated ? `@${user?.username}` : "Guest"}
           </span>
         </div>
 
